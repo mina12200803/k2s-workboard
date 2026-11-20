@@ -714,7 +714,7 @@ function startSync(){
     const subCol = (col, key) => DB.collection(col).onSnapshot({includeMetadataChanges: true}, snap => {
       S[key || col] = snap.docs.map(d => ({id:d.id, ...d.data()}));
       if(key === "sharedEvents") mergeEvents();
-      if(col === "members") resolveMe();
+      if(col === "members"){ resolveMe(); migrateEmails(); }
       if(!snap.metadata.fromCache){ S.loadedCols.add(col); if(S.loadedCols.size >= 3){ clearTimeout(slowTimer); S.slow = false; } }
       render();
     }, err => {
@@ -727,7 +727,16 @@ function startSync(){
       S.privEvents = snap.docs.map(d => ({id:d.id, ...d.data(), private:true})); mergeEvents(); render();
     }, () => {});
     DB.doc("config/route").onSnapshot(d => { S.route = d.exists ? {...S.route, ...d.data()} : S.route; render(); }, () => {});
-    S.linkLoaded = true;
+    // 自分の名簿（allow/自分のアドレス）：本人も読める
+    DB.doc("allow/" + myEmail()).onSnapshot(d => {
+      S.myMemberId = d.exists ? d.data().memberId : null; S.linkLoaded = true; resolveMe(); render();
+    }, () => { S.linkLoaded = true; render(); });
+    // 名簿全体：読めるのは管理者だけ（読めたら管理者と判断）
+    DB.collection("allow").onSnapshot(snap => {
+      S.isAdmin = true; S.allowMap = {};
+      snap.docs.forEach(d => { const v = d.data(); if(v && v.memberId) S.allowMap[v.memberId] = d.id; });
+      render(); migrateEmails();
+    }, () => { S.isAdmin = false; S.allowMap = {}; render(); });
   }
   render();
 }
@@ -837,23 +846,50 @@ async function putRoute(route){
   else { LOCAL.config = LOCAL.config || {}; LOCAL.config.route = route; ls.set("k2s-local-v1", LOCAL); applyLocal(); render(); }
 }
 const myEmail = () => ((S.authUser && S.authUser.email) || "").toLowerCase();
+// 自分が誰か：ログインしたメールアドレスの名簿（allow/自分のアドレス）に書かれた社員IDで判定
 function resolveMe(){
   if(S.mode !== "db") return;
-  const m = S.members.find(x => (x.email || "").toLowerCase() === myEmail());
+  if(S.myMemberId && mem(S.myMemberId)){ S.meId = S.myMemberId; return; }
+  const m = S.members.find(x => (x.email || "").toLowerCase() === myEmail()); // 旧データ用
   S.meId = m ? m.id : null;
 }
-// 社員のメールアドレスを設定（ログインできる人の名簿 allow も一緒に更新）
+// 社員のメールアドレス（共有モードでは管理者だけが読める名簿 allow から取る）
+function emailOf(id){
+  if(S.mode === "db") return (S.allowMap && S.allowMap[id]) || "";
+  return ((mem(id) || {}).email) || "";
+}
+const canManage = () => S.mode !== "db" || !!S.isAdmin;
+// 社員のメールアドレスを設定。共有モードではアドレスは allow（管理者と本人だけが読める）にだけ保存し、社員一覧には残さない
 async function setMemberEmail(id, email){
   const m = mem(id); if(!m) return;
   email = (email || "").trim().toLowerCase();
-  const old = (m.email || "").toLowerCase();
-  if(email && S.members.some(x => x.id !== id && (x.email || "").toLowerCase() === email)){ toast("そのメールアドレスは別の社員に登録されています"); throw new Error("dup"); }
-  const body = {...m, email}; delete body.id; delete body.title;
-  await put("members", id, body);
-  if(S.mode === "db"){
-    if(old && old !== email) await del("allow", old);
-    if(email) await put("allow", email, {memberId:id});
+  if(S.mode !== "db"){
+    if(email && S.members.some(x => x.id !== id && (x.email || "").toLowerCase() === email)){ toast("そのメールアドレスは別の社員に登録されています"); throw new Error("dup"); }
+    const body = {...m, email}; delete body.id; delete body.title;
+    await put("members", id, body); return;
   }
+  const old = (emailOf(id) || m.email || "").toLowerCase();
+  if(email && Object.entries(S.allowMap || {}).some(([mid, e]) => mid !== id && e === email)){ toast("そのメールアドレスは別の社員に登録されています"); throw new Error("dup"); }
+  if(old && old !== email) await del("allow", old);
+  if(email) await put("allow", email, {memberId:id});
+  if("email" in m){ const body = {...m}; delete body.id; delete body.title; delete body.email; await put("members", id, body); }
+}
+// 以前の形式（社員一覧にアドレスが入っていた）を、管理者が開いたときに一度だけ移し替える
+let migrating = false;
+async function migrateEmails(){
+  if(migrating || S.mode !== "db" || !S.isAdmin) return;
+  const olds = S.members.filter(m => m.email);
+  if(!olds.length) return;
+  migrating = true;
+  try {
+    for(const m of olds){
+      const e = m.email.toLowerCase();
+      if(!S.allowMap || S.allowMap[m.id] !== e) await put("allow", e, {memberId:m.id});
+      const body = {...m}; delete body.id; delete body.title; delete body.email;
+      await put("members", m.id, body);
+    }
+  } catch(e){}
+  migrating = false;
 }
 async function setMe(memberId){
   if(S.mode === "db"){
@@ -1173,13 +1209,13 @@ function viewSettings(){
       <section class="panel"><header><h2>あなた</h2></header><div class="body" style="display:flex;align-items:center;gap:12px;padding-top:14px">
         ${S.meId ? av(S.meId) : ""}<div style="flex:1;min-width:0"><b>${esc(S.meId ? memName(S.meId) : "未選択")}</b><div class="note">${S.mode === "db" ? "ログインしたメールアドレスで自動的に判定しています" : "この端末で使う人"}</div></div>
         ${S.mode === "db" ? "" : `<button class="btn sm" data-act="who">切り替える</button>`}</div></section>
-      <section class="panel"><header><h2>出張申請の承認ルート</h2></header><div class="body" style="display:flex;flex-direction:column;gap:12px;padding-top:14px">
+      ${canManage() ? "" : "<!--"}<section class="panel"><header><h2>出張申請の承認ルート</h2><span class="note" style="margin-left:auto">管理者だけに表示</span></header><div class="body" style="display:flex;flex-direction:column;gap:12px;padding-top:14px">
         <label class="field"><span>① 承認（課長）</span>${sel("rtMgr", S.route.managerId)}</label>
         <label class="field"><span>② 決裁（社長・副社長）</span>${sel("rtPres", S.route.presidentId)}</label>
         <label class="field"><span>③ 確認（経理担当）</span>${sel("rtAcc", S.route.accountingId)}</label>
         <p class="note" style="margin:0">申請者本人が承認者の場合、その段階は自動で飛ばされます。決裁されると、申請者のスケジュールに出張予定が自動で入ります。</p>
         <div><button class="btn primary sm" data-act="save-route">ルートを保存</button></div>
-      </div></section>
+      </div></section>${canManage() ? "" : "-->"}
       <section class="panel"><header><h2>アカウントとデータ</h2></header><div class="body" style="padding-top:14px;font-size:13px;line-height:1.7;display:flex;flex-direction:column;gap:10px">
         ${S.mode === "db"
           ? `<div>ログイン中：<b>${esc((S.authUser||{}).email||"")}</b><br>予定と申請は、ログインした全員とリアルタイムで共有されます。電波のない場所で入力した内容は、つながったときに自動で送信されます。</div><div><button class="btn sm" data-act="logout">ログアウト</button></div>`
@@ -1188,11 +1224,11 @@ function viewSettings(){
         <div class="note">スマホのホーム画面に追加する方法：iPhoneはSafariの共有ボタン→「ホーム画面に追加」。AndroidはChromeのメニュー→「アプリをインストール」または「ホーム画面に追加」。</div>
       </div></section>
     </div>
-    <section class="panel"><header><h2>メンバー</h2><span class="note" style="margin-left:auto">${ms.length}人</span></header><div class="body" style="padding-top:10px">
-      ${ms.map(m => `<div class="mem-row">${av(m.id, true)}<input class="inp" data-mname="${esc(m.id)}" value="${esc(m.name)}" aria-label="氏名"><input class="inp" type="email" data-memail="${esc(m.id)}" value="${esc(m.email||"")}" placeholder="ログイン用メールアドレス" aria-label="${esc(m.name)}のメールアドレス"><button class="icon-btn" data-mdel="${esc(m.id)}" aria-label="${esc(m.name)}を削除">${ic("trash")}</button></div>`).join("")}
+    ${canManage() ? "" : "<!--"}<section class="panel"><header><h2>メンバー</h2><span class="note" style="margin-left:auto">管理者だけに表示・${ms.length}人</span></header><div class="body" style="padding-top:10px">
+      ${ms.map(m => `<div class="mem-row">${av(m.id, true)}<input class="inp" data-mname="${esc(m.id)}" value="${esc(m.name)}" aria-label="氏名"><input class="inp" type="email" data-memail="${esc(m.id)}" value="${esc(emailOf(m.id))}" placeholder="ログイン用メールアドレス" aria-label="${esc(m.name)}のメールアドレス"><button class="icon-btn" data-mdel="${esc(m.id)}" aria-label="${esc(m.name)}を削除">${ic("trash")}</button></div>`).join("")}
       <div class="mem-row" style="margin-top:6px"><span></span><input class="inp" id="newMemName" placeholder="追加する人の氏名（例：山田 太郎）"><input class="inp" type="email" id="newMemEmail" placeholder="ログイン用メールアドレス"><button class="icon-btn" data-act="add-mem" aria-label="メンバーを追加">${ic("plus")}</button></div>
-      <p class="note">氏名は入力欄から離れると保存されます。</p>
-    </div></section>
+      <p class="note">氏名・メールアドレスは入力欄から離れると保存されます。メールアドレスは管理者と本人以外には見えません。</p>
+    </div></section>${canManage() ? "" : "-->"}
   </div>`;
 }
 
@@ -1569,7 +1605,7 @@ document.addEventListener("click", async e => {
   if(el.dataset.tp){ const [a,b] = el.dataset.tp.split("-"); $("#evAllDay").checked = false; $("#evStart").disabled = $("#evEnd").disabled = false; $("#evStart").value = a; $("#evEnd").value = b; updateClash(); return; }
   if(el.dataset.mdel){
     const m = mem(el.dataset.mdel); if(!m) return;
-    if(await confirmBox(`${m.name}さんをメンバーから外します。過去の予定や申請はそのまま残ります。`, "外す", true)){ try { await del("members", m.id); if(S.mode === "db" && m.email) await del("allow", m.email.toLowerCase()); toast("メンバーから外しました（このアドレスではログインできなくなります）"); } catch(e){} }
+    if(await confirmBox(`${m.name}さんをメンバーから外します。過去の予定や申請はそのまま残ります。`, "外す", true)){ try { const em = emailOf(m.id); await del("members", m.id); if(S.mode === "db" && em) await del("allow", em.toLowerCase()); toast("メンバーから外しました（このアドレスではログインできなくなります）"); } catch(e){} }
     return;
   }
   const a = el.dataset.act;
