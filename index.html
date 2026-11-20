@@ -679,6 +679,26 @@ body{background:radial-gradient(900px 520px at 105% -10%,#FFE6F1 0%,transparent 
 .pl-card::before{top:12px;bottom:12px;left:8px;width:4px}
 .pl-card.trip{background:linear-gradient(135deg,#FFF4E8,#fff 70%)}
 .pl-date{border-bottom-color:#EFEAF7}
+/* ================= スマホ：人ごとにまとめた予定カード ================= */
+.mg-list{display:flex;flex-direction:column;gap:12px}
+.mg-co{display:flex;flex-wrap:wrap;gap:6px}
+.mg-co-item{border:0;border-radius:999px;padding:6px 14px;background:linear-gradient(135deg,#E3F7F0,#EEE9FF);color:#127F6B;font-weight:600;font-size:13px;cursor:pointer}
+.mg-card{background:#fff;border:1px solid #EFEAF7;border-radius:18px;padding:12px 14px 8px;box-shadow:0 1px 2px rgba(80,60,140,.05),0 12px 24px -16px rgba(110,80,200,.4)}
+.mg-card.me{border-color:#DCD3F7;background:linear-gradient(180deg,#FBF9FF,#fff 60%)}
+.mg-head{display:flex;align-items:center;gap:9px;padding-bottom:8px;margin-bottom:2px;border-bottom:1px solid #F3EFF9}
+.mg-head .av{width:30px;height:30px;font-size:12px;box-shadow:0 0 0 2px #fff,0 4px 10px -4px rgba(80,60,140,.35)}
+.mg-head b{font-size:15px}
+.mg-me{font-size:11px;font-weight:700;color:var(--accent-strong);background:var(--accent-soft);padding:2px 8px;border-radius:999px}
+.mg-count{margin-left:auto;font-size:12px;color:var(--ink-3);font-weight:600}
+.mg-row{display:grid;grid-template-columns:50px minmax(0,1fr);gap:8px;align-items:baseline;width:100%;text-align:left;border:0;background:transparent;padding:9px 2px;border-bottom:1px dashed #F1ECF8;font:inherit;color:var(--ink);cursor:pointer}
+.mg-row:last-child{border-bottom:0}
+.mg-row:active{background:#FAF7FF}
+.mg-tm{font-size:13px;color:var(--ink-3);font-weight:600}
+.mg-txt{font-size:14px;line-height:1.5;min-width:0;overflow-wrap:anywhere}
+.mg-txt small{display:block;font-size:11.5px;color:var(--ink-3);margin-top:2px}
+.mg-badge{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:6px;margin-right:6px;vertical-align:1px;background:color-mix(in srgb,var(--cat,#9A93AF) 16%,#fff);color:color-mix(in srgb,var(--cat,#9A93AF) 72%,#1E1530)}
+.mg-row.busy .mg-txt{color:var(--ink-3)}
+.mg-row svg.i{width:13px;height:13px;vertical-align:-2px}
 </style>
 </head>
 <body>
@@ -1328,8 +1348,30 @@ function mobileSched(days){
     ${mobileToolbar()}
     <div class="daystrip">${strip}</div>
     <h2 style="font-size:16px;margin:4px 0 10px" class="num">${md(S.mDay)}${HOLIDAYS[S.mDay]?`　<span style="color:var(--bad);font-size:13px">${HOLIDAYS[S.mDay]}</span>`:""}</h2>
-    <div class="m-list">${list.length ? list.map(e => `<button class="m-item" data-ev="${esc(e.id)}"><span class="tm num">${esc(timeLabel(e))}</span><span><span class="ttl"><span class="dot" style="${catVar(e.category)}"></span>${e.private ? `<span class="lk">${ic("lock")}</span>` : ""}${esc(e.title)}</span><span class="who">${e.allCompany ? "全社" : (e.memberIds||[]).map(id => `${av(id,true)}${esc(famName(id))}`).join(" ")}${(e.facilityIds||[]).length ? "・" + e.facilityIds.map(f => esc((fac(f)||{}).name||"")).join("、") : ""}</span></span></button>`).join("") : `<div class="empty">この日の予定はありません。</div>`}</div>
+    ${mobileGrouped(list)}
   </div>`;
+}
+// スマホ（全員表示）：選んだ日の予定を人ごとのカードにまとめる
+function mobileGrouped(list){
+  if(!list.length) return `<div class="empty">この日の予定はありません。</div>`;
+  const co = list.filter(e => e.allCompany);
+  const row = e => {
+    const tm = e.allDay || !e.start ? "終日" : esc(e.start);
+    if(e.busy) return `<button class="mg-row busy" data-ev="${esc(e.id)}"><span class="mg-tm num">${tm}</span><span class="mg-txt">${ic("lock")} 予定あり</span></button>`;
+    const facs = (e.facilityIds||[]).map(f => (fac(f)||{}).name).filter(Boolean);
+    return `<button class="mg-row" data-ev="${esc(e.id)}" style="${catVar(e.category)}"><span class="mg-tm num">${tm}</span><span class="mg-txt"><span class="mg-badge">${esc(e.category || "その他")}</span>${e.private ? `<span class="lk">${ic("lock")}</span>` : ""}${esc(e.title)}${facs.length ? `<small>${esc(facs.join("、"))}</small>` : ""}</span></button>`;
+  };
+  let html = co.length ? `<div class="mg-co">${co.map(e => `<button class="mg-co-item" data-ev="${esc(e.id)}">${esc(e.title)}</button>`).join("")}</div>` : "";
+  const ms = filteredMembers();
+  for(const m of ms){
+    const evs = list.filter(e => !e.allCompany && (e.memberIds||[]).includes(m.id));
+    if(!evs.length) continue;
+    html += `<section class="mg-card ${m.id === S.meId ? "me" : ""}">
+      <div class="mg-head">${av(m.id)}<b>${esc(m.name)}</b>${m.id === S.meId ? `<span class="mg-me">あなた</span>` : ""}<span class="mg-count num">${evs.length}件</span></div>
+      ${evs.map(row).join("")}
+    </section>`;
+  }
+  return `<div class="mg-list">${html}</div>`;
 }
 
 /* ---------- 出張申請 ---------- */
