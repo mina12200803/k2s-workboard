@@ -605,6 +605,55 @@ body{background:radial-gradient(900px 520px at 105% -10%,#FFE6F1 0%,transparent 
 .login{background:radial-gradient(700px 420px at 15% 0%,#E3F6F0 0%,transparent 65%),radial-gradient(700px 420px at 90% 10%,#FFE6F1 0%,transparent 65%),radial-gradient(800px 500px at 50% 110%,#EFEAFF 0%,transparent 65%),var(--bg)}
 .brand-mark.big{background:url(icon-192.png) center/cover no-repeat;color:transparent;width:72px;height:72px;border-radius:18px;box-shadow:0 12px 26px -12px rgba(15,181,154,.6)}
 .login-card h1{color:var(--ink)}
+/* ================= スケジュール表：線を減らし余白を広げた上質なデザイン ================= */
+.cal-wrap{border:0;background:rgba(255,255,255,.82);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:22px;box-shadow:0 2px 6px rgba(90,70,150,.05),0 24px 50px -24px rgba(110,80,200,.28);padding:6px 6px 10px}
+.week{grid-template-columns:172px repeat(7,minmax(122px,1fr))}
+.week .h{border:0;background:transparent;display:flex;flex-direction:column-reverse;align-items:center;justify-content:flex-end;gap:2px;padding:16px 6px 14px;text-align:center}
+.week .h:first-child{align-items:flex-start;justify-content:flex-end;padding-left:16px;font-size:11px;letter-spacing:.14em;color:var(--ink-3);font-weight:700}
+.week .h .w{display:block;margin:0;font-size:11px;font-weight:700;letter-spacing:.16em;color:var(--ink-3)}
+.week .h .d{font-size:24px;font-weight:600;color:var(--ink);line-height:1.1}
+.week .h .hn{order:-1;font-size:10px;margin-top:3px;color:#E2558A}
+.week .h.sat .d{color:#5B8DEF}
+.week .h.sun .d,.week .h.hol .d{color:#E2558A}
+.week .h.is-today{background:transparent}
+.week .h.is-today .d{min-width:38px;height:38px;border-radius:19px;font-size:18px;display:inline-grid;place-items:center}
+.rowhead{border:0;border-bottom:1px solid #F2EEF8;background:transparent;padding:14px 12px 14px 16px;align-items:center;gap:10px}
+.rowhead .nm{font-weight:600;font-size:13.5px}
+.rowhead .av.sm{width:30px;height:30px;font-size:12px;box-shadow:0 0 0 2px #fff,0 4px 10px -4px rgba(80,60,140,.35)}
+.rowhead.me{background:linear-gradient(90deg,rgba(240,236,255,.9),rgba(240,236,255,0))}
+.cell{border:0;border-bottom:1px solid #F2EEF8;padding:8px 6px 28px;gap:6px;transition:background .15s}
+.cell:hover{background:rgba(245,241,252,.7)}
+.cell.weekend{background:rgba(250,248,255,.55)}
+.cell.hol{background:rgba(255,242,247,.55)}
+.cell.is-today{background:linear-gradient(180deg,rgba(255,238,246,.75),rgba(239,234,255,.55))}
+.cell .add{border:0;background:var(--grad-main);color:#fff;border-radius:8px;width:24px;height:24px;box-shadow:0 6px 12px -6px rgba(170,110,240,.8)}
+.cell .add svg.i{width:14px;height:14px}
+/* 予定カード：白地＋淡い影、左に色の丸 */
+.chip{background:#fff;border:1px solid #EFEAF7;border-radius:11px;padding:7px 9px;box-shadow:0 1px 2px rgba(80,60,140,.05),0 6px 14px -8px rgba(80,60,140,.22);font-size:12px;line-height:1.5;color:var(--ink);transition:transform .12s,box-shadow .12s}
+.chip::before{position:static;display:inline-block;width:7px;height:7px;border-radius:50%;margin:0 6px 1px 0;vertical-align:middle;background:var(--cat)}
+.chip:hover{background:#fff;transform:translateY(-1px);box-shadow:0 2px 4px rgba(80,60,140,.06),0 12px 20px -10px rgba(80,60,140,.3)}
+.chip .t{font-weight:600;color:var(--ink-3);margin-right:5px;font-size:11.5px}
+.chip .x{color:var(--ink-3);font-size:10.5px;margin-top:1px}
+.chip.trip{background:linear-gradient(135deg,#FFF4E8,#fff 70%);border-color:#FBE3C8}
+.chip.busy{background:repeating-linear-gradient(135deg,#F7F4FC 0 6px,#fff 6px 12px);border-style:dashed;box-shadow:none}
+.chip.clash{outline:0;border-color:#F28BA8;box-shadow:0 0 0 2px rgba(242,139,168,.25)}
+/* 会社カレンダーの行 */
+.band{background:transparent}
+.rowhead.band{background:transparent}
+.rowhead.band .nm{color:#13A388;font-size:13px;letter-spacing:.04em}
+.band.cell{padding:8px 6px;min-height:44px}
+.band .chip{background:linear-gradient(135deg,#E3F7F0,#EEE9FF);border:0;color:#127F6B;font-weight:600;box-shadow:none;text-align:center}
+.band .chip::before{display:none}
+.band .chip .x{color:#4E9C8C}
+.legend{gap:6px 10px;margin-top:16px}
+.legend>span{background:rgba(255,255,255,.75);border:1px solid #EFEAF7;border-radius:999px;padding:3px 10px 3px 8px}
+.toolbar .range{font-weight:600;letter-spacing:.02em}
+/* 月表示も同じ雰囲気に */
+.month{background:transparent}
+.month .mh{border:0;text-align:center;letter-spacing:.14em}
+.mcell{border:0;border-top:1px solid #F2EEF8;padding:8px}
+.mcell.out{background:rgba(250,248,255,.5)}
+.mcell.is-today{background:linear-gradient(180deg,rgba(255,238,246,.75),rgba(239,234,255,.55))}
 </style>
 </head>
 <body>
