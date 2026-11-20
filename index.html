@@ -600,13 +600,9 @@ const CATS = [
 ];
 const CAT_COLOR = Object.fromEntries(CATS.map(c => [c.k, c.c]));
 const FACILITIES = [
-  {id:"f1",name:"鉄板ミュージアム",g:"部屋"},
-  {id:"f2",name:"本社会議室A（TV有）",g:"部屋"},
-  {id:"f3",name:"本社会議室B",g:"部屋"},
+  {id:"f8",name:"ハイエース（広島本社）",g:"車両"},
   {id:"f4",name:"ハイエース（東京営業所）",g:"車両"},
-  {id:"f5",name:"軽バン（広島本社）",g:"車両"},
-  {id:"f6",name:"キャラバン（広島本社）",g:"車両"},
-  {id:"f7",name:"トラック（広島本社）",g:"車両"}
+  {id:"f5",name:"軽バン（広島本社）",g:"車両"}
 ];
 const LODGING = ["無し","有り（ホテル）","有り（その他）"];
 const TRANSPORT = ["社用車","自家用車","新幹線","飛行機","バス","船","その他"];
@@ -1065,7 +1061,7 @@ function viewHome(){
   <div class="grid-home">
     <div style="display:flex;flex-direction:column;gap:18px;min-width:0">
       <section class="panel"><header><h2>今日のあなたの予定</h2><button class="more" data-nav="schedule">スケジュールを開く</button></header><div class="body">${agenda}</div></section>
-      <section class="panel"><header><h2>今日の社用車・会議室</h2></header><div class="body"><div class="fac-list">${facToday.map(({f,evs}) => `<div class="fac-row"><span class="nm" title="${esc(f.name)}">${esc(f.name)}</span><span class="use">${evs.length ? evs.map(e => `<button class="chip" style="${catVar(e.category)};width:auto" data-ev="${esc(e.id)}"><span class="t">${esc(timeLabel(e))}</span>${esc((e.memberIds||[]).map(famName).join("・") || e.title)}</button>`).join("") : `<span class="free">空き</span>`}</span></div>`).join("")}</div></div></section>
+      <section class="panel"><header><h2>今日の社用車</h2></header><div class="body"><div class="fac-list">${facToday.map(({f,evs}) => `<div class="fac-row"><span class="nm" title="${esc(f.name)}">${esc(f.name)}</span><span class="use">${evs.length ? evs.map(e => `<button class="chip" style="${catVar(e.category)};width:auto" data-ev="${esc(e.id)}"><span class="t">${esc(timeLabel(e))}</span>${esc((e.memberIds||[]).map(famName).join("・") || e.title)}</button>`).join("") : `<span class="free">空き</span>`}</span></div>`).join("")}</div></div></section>
     </div>
     <div style="display:flex;flex-direction:column;gap:18px;min-width:0">
       <section class="panel"><header><h2>承認をお願いされています</h2>${inbox.length?`<span class="badge num">${inbox.length}</span>`:""}</header><div class="body">${inbox.length ? inbox.slice(0,5).map(tripRow).join("") : `<div class="empty">承認待ちの申請はありません。</div>`}</div></section>
@@ -1088,7 +1084,7 @@ function viewSchedule(){
     <div class="seg" role="group" aria-label="表示切替">
       <button data-smode="week" aria-pressed="${mode==="week"}">週</button>
       <button data-smode="month" aria-pressed="${mode==="month"}">月</button>
-      <button data-smode="facility" aria-pressed="${mode==="facility"}">施設・車</button>
+      <button data-smode="facility" aria-pressed="${mode==="facility"}">社用車</button>
     </div>
     <button class="icon-btn" data-shift="-1" aria-label="前へ">${ic("left")}</button>
     <button class="btn sm" data-shift="0">今日</button>
@@ -1101,7 +1097,7 @@ function viewSchedule(){
   let grid;
   if(mode === "month") grid = monthGrid();
   else grid = weekGrid(days, mode === "facility");
-  const legend = `<div class="legend">${[["red","商談・打合・納品"],["orange","出張・会合・イベント"],["brown","会議"],["purple","リモート会議"],["green","発送・予約"],["blue","休み・定休日"],["pink","バースデー"],["gray","その他"]].map(([c,l]) => `<span><span class="dot" style="--cat:var(--c-${c})"></span>${l}</span>`).join("")}<span><span class="dot" style="--cat:var(--bad)"></span>赤枠＝施設の重複予約</span></div>`;
+  const legend = `<div class="legend">${[["red","商談・打合・納品"],["orange","出張・会合・イベント"],["brown","会議"],["purple","リモート会議"],["green","発送・予約"],["blue","休み・定休日"],["pink","バースデー"],["gray","その他"]].map(([c,l]) => `<span><span class="dot" style="--cat:var(--c-${c})"></span>${l}</span>`).join("")}<span><span class="dot" style="--cat:var(--bad)"></span>赤枠＝社用車の重複予約</span></div>`;
   return head + `<div class="d-sched">${toolbar}<div class="cal-wrap">${grid}</div>${legend}</div>` + mobileSched(days);
 }
 function filteredMembers(){
@@ -1129,7 +1125,7 @@ function dayClass(d){
 }
 function weekGrid(days, byFacility){
   const clash = clashSet();
-  const head = `<div class="h">${byFacility ? "施設・社用車" : "メンバー"}</div>` + days.map(d => { const k = ymd(d); return `<div class="h ${dayClass(d).join(" ")}"><span class="d num">${d.getDate()}</span><span class="w">${WD[d.getDay()]}</span>${HOLIDAYS[k]?`<span class="hn">${HOLIDAYS[k]}</span>`:""}</div>`; }).join("");
+  const head = `<div class="h">${byFacility ? "社用車" : "メンバー"}</div>` + days.map(d => { const k = ymd(d); return `<div class="h ${dayClass(d).join(" ")}"><span class="d num">${d.getDate()}</span><span class="w">${WD[d.getDay()]}</span>${HOLIDAYS[k]?`<span class="hn">${HOLIDAYS[k]}</span>`:""}</div>`; }).join("");
   const band = `<div class="rowhead band" title="休業日・全社の予定（空いているマスを押すと追加できます）"><div class="nm">会社カレンダー</div></div>` + days.map(d => { const k = ymd(d); const evs = S.events.filter(e => e.allCompany && onDay(e,k)).sort(cmpEv); return `<div class="cell band ${dayClass(d).filter(c=>c!=="sun"&&c!=="sat").join(" ")}" data-add="all|${k}">${evs.map(e => chip(e, clash, k)).join("")}</div>`; }).join("");
   let rows = "";
   if(byFacility){
@@ -1311,7 +1307,7 @@ function openEvent(ev, preset = {}){
         <span class="presets"><button type="button" class="btn sm" data-tp="09:00-12:00">午前</button><button type="button" class="btn sm" data-tp="13:00-18:00">午後</button><button type="button" class="btn sm" data-tp="09:00-18:00">1日</button></span>
       </div></div>
       <div class="field"><span class="lab">参加者</span><div class="choice" id="evMembers">${sortedMembers().map(m => `<label><input type="checkbox" value="${esc(m.id)}" ${E.memberIds.includes(m.id)?"checked":""}><span>${esc(m.name)}</span></label>`).join("")}</div></div>
-      <div class="field"><span class="lab">施設・社用車</span><div class="choice" id="evFacs">${FACILITIES.map(f => `<label><input type="checkbox" value="${f.id}" ${E.facilityIds.includes(f.id)?"checked":""}><span>${esc(f.name)}</span></label>`).join("")}</div><div id="evClash"></div></div>
+      <div class="field"><span class="lab">社用車</span><div class="choice" id="evFacs">${FACILITIES.map(f => `<label><input type="checkbox" value="${f.id}" ${E.facilityIds.includes(f.id)?"checked":""}><span>${esc(f.name)}</span></label>`).join("")}</div><div id="evClash"></div></div>
       <div class="row2">
         <label class="field"><span>会社・場所</span><input class="inp" id="evCompany" value="${esc(E.company||"")}" placeholder="例：株式会社〇〇 / 広島駅"></label>
         <div class="field"><span class="lab">公開範囲</span>
@@ -1333,7 +1329,7 @@ function syncPrivateUi(){
   $$("#evMembers input, #evFacs input").forEach(i => { i.disabled = on; });
   $("#evMembers").style.opacity = $("#evFacs").style.opacity = on ? ".45" : "";
   let note = $("#evPrivNote");
-  if(on && !note){ note = document.createElement("div"); note.id = "evPrivNote"; note.className = "alert-box info"; note.innerHTML = `${ic("lock")}<span>内容はあなたにだけ表示されます。ほかの人の画面では、この時間が「予定あり」とだけ表示されます。参加者・施設は選べません（社用車や会議室を使うときは、重複予約を防ぐため公開の予定で登録してください）。</span>`; $("#evFacs").parentNode.after(note); }
+  if(on && !note){ note = document.createElement("div"); note.id = "evPrivNote"; note.className = "alert-box info"; note.innerHTML = `${ic("lock")}<span>内容はあなたにだけ表示されます。ほかの人の画面では、この時間が「予定あり」とだけ表示されます。参加者・社用車は選べません（社用車を使うときは、重複予約を防ぐため公開の予定で登録してください）。</span>`; $("#evFacs").parentNode.after(note); }
   if(!on && note) note.remove();
   updateClash();
 }
@@ -1360,7 +1356,7 @@ function updateClash(){
     const common = (o.facilityIds||[]).filter(f => E.facilityIds.includes(f));
     if(common.length && E.date && overlaps(E, o)) hits.push({o, common});
   }
-  box.innerHTML = hits.length ? `<div class="alert-box bad" style="margin-top:6px">${ic("warn")}<span><b>重複しています：</b>${hits.map(h => `${esc(h.common.map(f => fac(f).name).join("、"))} は ${md(h.o.date)} ${esc(timeLabel(h.o))}「${esc(h.o.title)}」（${esc((h.o.memberIds||[]).map(famName).join("・"))}）で予約済み`).join("<br>")}</span></div>` : "";
+  box.innerHTML = hits.length ? `<div class="alert-box bad" style="margin-top:6px">${ic("warn")}<span><b>重複しています：</b>${hits.map(h => `${esc(h.common.map(f => (fac(f) || {}).name || "").join("、"))} は ${md(h.o.date)} ${esc(timeLabel(h.o))}「${esc(h.o.title)}」（${esc((h.o.memberIds||[]).map(famName).join("・"))}）で予約済み`).join("<br>")}</span></div>` : "";
 }
 async function saveEvent(){
   const E = readEventForm(); const err = $("#evErr");
