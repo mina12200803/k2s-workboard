@@ -697,7 +697,8 @@ async function initStore(){
     firebase.initializeApp(FB_CFG);
     AUTH = firebase.auth();
     DB = firebase.firestore();
-    try { await DB.enablePersistence({synchronizeTabs:true}); } catch(e){}
+    // 端末への保存（圏外対応）。ほかのタブの状態によっては返事が来ないことがあるので、2.5秒で見切って先に進む
+    try { await Promise.race([DB.enablePersistence({synchronizeTabs:true}), new Promise(r => setTimeout(r, 2500))]); } catch(e){}
     S.mode = "auth";
     render();
     AUTH.onAuthStateChanged(u => {
