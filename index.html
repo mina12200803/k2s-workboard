@@ -699,6 +699,39 @@ body{background:radial-gradient(900px 520px at 105% -10%,#FFE6F1 0%,transparent 
 .mg-badge{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:6px;margin-right:6px;vertical-align:1px;background:color-mix(in srgb,var(--cat,#9A93AF) 16%,#fff);color:color-mix(in srgb,var(--cat,#9A93AF) 72%,#1E1530)}
 .mg-row.busy .mg-txt{color:var(--ink-3)}
 .mg-row svg.i{width:13px;height:13px;vertical-align:-2px}
+/* ================= 個人の予定：タイムライン ================= */
+.tl-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.tl-head .av{width:44px;height:44px;font-size:16px;box-shadow:0 0 0 3px #fff,0 8px 18px -8px rgba(110,80,200,.5)}
+.tl-head b{display:block;font-size:18px;font-weight:700}
+.tl-head .note{font-size:12px}
+.tl-sum{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 18px}
+.tl-chip{font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px;background:#EFEBFF;color:#5A47D6}
+.tl-chip.mint{background:#E3F7F0;color:#127F6B}
+.tl-week{font-size:11.5px;font-weight:700;color:var(--ink-3);letter-spacing:.08em;margin:10px 0 10px 60px}
+.tl-day{display:grid;grid-template-columns:52px minmax(0,1fr);gap:0 12px;scroll-margin-top:16px}
+.tl-date{display:flex;flex-direction:column;align-items:center;padding-top:4px}
+.tl-wd{font-size:11px;font-weight:700;color:var(--ink-3);letter-spacing:.1em}
+.tl-dn{font-size:22px;font-weight:600;line-height:1.2;color:var(--ink)}
+.tl-mo{font-size:10px;color:var(--ink-3);margin-top:1px}
+.tl-date.sat .tl-dn,.tl-date.sat .tl-wd{color:#5B8DEF}
+.tl-date.sun .tl-dn,.tl-date.sun .tl-wd{color:#E2558A}
+.tl-date.today .tl-dn{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--grad-main);color:#fff;font-size:18px;margin-top:2px;box-shadow:0 8px 16px -8px rgba(200,110,220,.8)}
+.tl-now{font-size:10px;font-weight:700;color:#7C6BF2;margin-top:4px;letter-spacing:.06em}
+.tl-body{position:relative;border-left:2px solid #E6DFF7;padding:2px 0 18px 16px;display:flex;flex-direction:column;gap:9px;min-width:0}
+.tl-body::before{content:"";position:absolute;left:-6px;top:12px;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid #C9BCF5}
+.tl-date.today + .tl-body::before{background:#B9A8FF;border-color:#fff;box-shadow:0 0 0 2px #B9A8FF}
+.tl-notes{display:flex;flex-wrap:wrap;gap:6px}
+.tl-pill{border:0;font:inherit;font-size:12.5px;font-weight:600;padding:4px 12px;border-radius:999px;background:linear-gradient(135deg,#E3F7F0,#EEE9FF);color:#127F6B;cursor:pointer}
+.tl-pill.hol{background:#FFEFF5;color:#D2467C;cursor:default}
+.tl .pl-card{margin-bottom:0;border-radius:14px;padding:10px 14px 10px 18px}
+.tl .pl-card::before{left:7px;top:11px;bottom:11px;width:3px}
+.tl .pl-card.busy{border-style:dashed;box-shadow:none}
+.tl .pl-time{font-size:12.5px;font-weight:600;color:var(--ink-3)}
+.tl .pl-title{font-size:15px}
+.tl .pl-badge{font-size:11px;padding:1px 7px;background:color-mix(in srgb,var(--cat,#9A93AF) 16%,#fff);color:color-mix(in srgb,var(--cat,#9A93AF) 72%,#1E1530)}
+.tl .pl-card.busy .pl-badge{background:#F1EEF7;color:var(--ink-3)}
+.tl .pl-empty{padding:6px 0 0}
+@media (min-width:821px){ .tl-day{grid-template-columns:64px minmax(0,1fr)} .tl-week{margin-left:76px} .tl-dn{font-size:26px} }
 </style>
 </head>
 <body>
@@ -1316,24 +1349,31 @@ function personalList(){
       ${facs.length || e.company ? `<span class="pl-sub">${esc([facs.join("、"), e.company].filter(Boolean).join("・"))}</span>` : ""}
     </button>`;
   };
-  let html = "";
+  // タイムライン：左に日付、右に縦線でつないだ予定カード
+  let html = "", weekCount = 0, weekOff = 0;
   for(let i = 0; i < n; i++){
     const d = addDays(start, i), k = ymd(d);
     const co = S.events.filter(e => e.allCompany && onDay(e, k)).sort(cmpEv);
     const evs = S.events.filter(e => !e.allCompany && onDay(e, k) && (e.memberIds||[]).some(id => ids.has(id))).sort(cmpEv);
     const hol = HOLIDAYS[k], isToday = k === todayStr();
-    if(d.getDay() === 1) html += `<div class="pl-week num">${d.getMonth()+1}/${d.getDate()}（月）〜 ${addDays(d,6).getMonth()+1}/${addDays(d,6).getDate()}（日）の週</div>`;
+    const off = co.some(e => e.category === "本社休み");
+    if(i < 7){ weekCount += evs.length; if(off) weekOff++; }
+    if(d.getDay() === 1) html += `<div class="tl-week num">${d.getMonth()+1}/${d.getDate()}（月）〜 ${addDays(d,6).getMonth()+1}/${addDays(d,6).getDate()}（日）</div>`;
     if(!evs.length && !co.length && !hol && !isToday) continue;
-    const red = d.getDay() === 0 || d.getDay() === 6 || hol || co.some(e => e.category === "本社休み");
-    html += `<section class="pl-day" ${isToday ? 'id="plToday"' : ""}>
-      <h3 class="pl-date num ${red ? "red" : ""}">${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${WD[d.getDay()]}）${isToday ? `<span class="pl-today">今日</span>` : ""}</h3>
-      ${hol || co.length ? `<div class="pl-notes">${hol ? `<span>${esc(hol)}</span>` : ""}${co.map(e => `<button class="pl-co" data-ev="${esc(e.id)}">${esc(e.title)}</button>`).join("")}</div>` : ""}
-      ${evs.length ? evs.map(card).join("") : `<div class="pl-empty">予定はありません</div>`}
+    const cls = d.getDay() === 6 ? "sat" : (d.getDay() === 0 || hol || off) ? "sun" : "";
+    html += `<section class="tl-day" ${isToday ? 'id="plToday"' : ""}>
+      <div class="tl-date ${cls} ${isToday ? "today" : ""}"><span class="tl-wd">${WD[d.getDay()]}</span><span class="tl-dn num">${d.getDate()}</span>${isToday ? `<span class="tl-now">今日</span>` : d.getDate() === 1 || i === 0 ? `<span class="tl-mo num">${d.getMonth()+1}月</span>` : ""}</div>
+      <div class="tl-body">
+        ${hol || co.length ? `<div class="tl-notes">${hol && !co.some(e => e.title.includes(hol)) ? `<span class="tl-pill hol">${esc(hol)}</span>` : ""}${co.map(e => `<button class="tl-pill" data-ev="${esc(e.id)}">${esc(e.title)}</button>`).join("")}</div>` : ""}
+        ${evs.length ? evs.map(card).join("") : `<div class="pl-empty">予定はありません</div>`}
+      </div>
     </section>`;
   }
   const last = addDays(start, n - 1);
-  return `<div class="pl-wrap">
-    <div class="pl-head">${who ? av(who.id) : ""}<b>${esc(S.filter === "me" ? "自分の予定" : (who ? who.name + "さんの予定" : ""))}</b><span class="note num">${md(ymd(start))} 〜 ${md(ymd(last))}</span></div>
+  const title = S.filter === "me" ? "自分の予定" : (who ? who.name + "さん" : "");
+  return `<div class="pl-wrap tl">
+    <div class="tl-head">${who ? av(who.id) : ""}<div><b>${esc(title)}</b><span class="note num">${md(ymd(start))} 〜 ${md(ymd(last))}</span></div></div>
+    <div class="tl-sum"><span class="tl-chip">今週 ${weekCount}件</span>${weekOff ? `<span class="tl-chip mint">本社休み ${weekOff}日</span>` : ""}</div>
     ${html || `<div class="empty">この期間の予定はありません。</div>`}
     <button class="btn pl-more" id="plMore" data-act="list-more">さらに先の予定を表示</button>
   </div>`;
