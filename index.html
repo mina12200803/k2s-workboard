@@ -715,6 +715,29 @@ body{background:radial-gradient(900px 520px at 105% -10%,#FFE6F1 0%,transparent 
 .mt-ev.busy{border:1px dashed var(--line-2);background:repeating-linear-gradient(135deg,#F7F4FC 0 6px,#fff 6px 12px)}
 .mt-ev.clash{border-color:#F28BA8}
 .m-sched .toolbar .lay-tg button{padding:6px 10px}
+/* PCの表（全員・1か月） */
+.cal-wrap.mtab-wrap{position:relative;overflow-x:auto;padding-left:0;padding-right:0}
+.week.mtab{grid-template-columns:172px repeat(var(--n),118px);width:max-content;min-width:0}
+.week.mtab>.rowhead,.week.mtab>.h:first-child{position:sticky;left:0;z-index:3;background:#fff;box-shadow:6px 0 10px -8px rgba(110,80,200,.25)}
+.week.mtab>.rowhead.me{background:#F6F2FF}
+.week.mtab>.h:first-child{z-index:4}
+.week.mtab .h{padding:12px 4px 10px}
+.week.mtab .h .d{font-size:19px}
+.week.mtab .h.is-today .d{min-width:32px;height:32px;font-size:15px}
+/* スマホの表（自分だけ・1か月カレンダー） */
+.pm-wrap{border-radius:18px;background:rgba(255,255,255,.85);box-shadow:0 1px 2px rgba(80,60,140,.05),0 18px 36px -22px rgba(110,80,200,.35);overflow:hidden}
+.pm-wrap .month{grid-template-columns:repeat(7,minmax(0,1fr));min-width:0}
+.pm-wrap .month .mh{padding:7px 0;font-size:10.5px;letter-spacing:.06em}
+.pm-wrap .mcell{min-height:74px;padding:3px 2px;gap:2px}
+.pm-wrap .mcell .dn{font-size:12px;padding-left:2px}
+.pm-wrap .mcell .dn small{display:none}
+.pm-wrap .chip{font-size:9.5px;line-height:1.25;padding:2px 3px;border-radius:5px;box-shadow:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pm-wrap .chip.rng{border-left-width:2px}
+.pm-wrap .chip.rng .t{font-size:9.5px;margin:0}
+.pm-wrap .chip .x,.pm-wrap .chip .lk,.pm-wrap .chip .te{display:none}
+.m-sched .lay-tg svg{display:none}
+.pm-wrap .chip::before{display:none}
+.pm-wrap .more{font-size:9.5px;padding-left:2px}
 /* 個人別の一覧カードも少し上品に */
 .pl-card{background:#fff;border:1px solid #EFEAF7;box-shadow:0 1px 2px rgba(80,60,140,.05),0 10px 22px -14px rgba(110,80,200,.35)}
 .pl-card:hover{background:#fff}
@@ -1222,8 +1245,9 @@ function draw(){
   const banner = S.slow ? `<div class="banner warn">${ic("warn")}<span>サーバーに接続できていません（オフラインの可能性があります）。表示が古いことがあります。入力した内容は、つながったときに送信されます。</span></div>`
     : S.mode === "local" ? `<div class="banner info">${ic("info")}<span>お試しモードです。入力した内容はこの端末の中だけに保存され、ほかの人には共有されません。共有するには手順書に沿ってサーバー（Firebase）を設定してください。</span></div>` : "";
   const fabAction = S.view === "trips" ? "new-trip" : S.view === "settings" ? "" : "new-event";
-  const oldMt = document.querySelector(".mt-wrap"), mtKey = ymd(mondayOf(S.anchor));
-  const keepMt = oldMt && oldMt.dataset.week === mtKey ? oldMt.scrollLeft : null;
+  const mtKey = ymd(mondayOf(S.anchor)) + S.anchor.getMonth();
+  const keepScroll = {};
+  for(const sel of [".mt-wrap", ".mtab-wrap"]){ const o = document.querySelector(sel); if(o && o.dataset.week === mtKey) keepScroll[sel] = o.scrollLeft; }
   root.innerHTML = `
   <div class="app">
     <aside class="side">
@@ -1242,8 +1266,10 @@ function draw(){
   if(S.modal && S.modal.type === "trip-detail") refreshTripDetail();
   // スマホの表：今日の列が見えるように横スクロール
   // （同じ週を描き直したときは、見ていた位置をそのまま保つ）
-  { const w = document.querySelector(".mt-wrap"); if(w){ w.dataset.week = mtKey; const th = w.querySelector(".mt-h.is-today");
-    if(keepMt !== null) w.scrollLeft = keepMt; else if(th) w.scrollLeft = Math.max(0, th.offsetLeft - 62); } }
+  for(const [sel, thSel, off] of [[".mt-wrap", ".mt-h.is-today", 62], [".mtab-wrap", ".h.is-today", 290]]){
+    const w = document.querySelector(sel); if(!w) continue; w.dataset.week = mtKey; const th = w.querySelector(thSel);
+    if(keepScroll[sel] !== undefined) w.scrollLeft = keepScroll[sel]; else if(th) w.scrollLeft = Math.max(0, th.offsetLeft - off);
+  }
   if(S.scrollToday){ S.scrollToday = false; const t = document.getElementById("plToday"); if(t) setTimeout(() => t.scrollIntoView({block:"start", behavior:"smooth"}), 30); }
 }
 
@@ -1290,10 +1316,10 @@ function viewSchedule(){
   if(mode === "month") range = `${S.anchor.getFullYear()}年 ${S.anchor.getMonth()+1}月`;
   else range = `${days[0].getFullYear()}年 ${days[0].getMonth()+1}月${days[0].getDate()}日 〜 ${days[6].getMonth()+1}月${days[6].getDate()}日`;
   const opts = [["all","全員"],["me","自分だけ"], ...sortedMembers().map(m => [m.id, m.name])];
-  const isTable = mode === "week" && S.layout === "table";
+  const isTable = mode !== "facility" && S.layout === "table";
   const toolbar = `
   <div class="toolbar">
-    ${mode === "week" ? layoutToggle() : ""}
+    ${mode !== "facility" ? layoutToggle() : ""}
     <div class="seg" role="group" aria-label="表示切替">
       <button data-smode="week" aria-pressed="${mode==="week"}">週</button>
       <button data-smode="month" aria-pressed="${mode==="month"}">月</button>
@@ -1304,7 +1330,7 @@ function viewSchedule(){
     <button class="icon-btn" data-shift="1" aria-label="次へ">${ic("right")}</button>
     <span class="range num">${range}</span>
     <span class="grow"></span>
-    ${mode !== "facility" && !isTable ? `<label class="sr" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2)">表示 <select class="sel" id="filterSel" style="width:auto">${opts.map(([v,l]) => `<option value="${esc(v)}" ${S.filter===v?"selected":""}>${esc(l)}</option>`).join("")}</select></label>` : ""}
+    ${mode !== "facility" ? `<label class="sr" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2)">表示 <select class="sel" id="filterSel" style="width:auto">${opts.map(([v,l]) => `<option value="${esc(v)}" ${S.filter===v?"selected":""}>${esc(l)}</option>`).join("")}</select></label>` : ""}
   </div>`;
   const head = `<div class="page-head"><div><h1>スケジュール</h1><div class="sub">空いているマスをクリックすると、その人・その日で予定を登録できます</div></div><div class="actions"><button class="btn primary" data-act="new-event">${ic("plus")}予定を登録</button></div></div>`;
   let grid;
@@ -1312,9 +1338,18 @@ function viewSchedule(){
   else grid = weekGrid(days, mode === "facility");
   const legend = `<div class="legend">${[["red","商談・打合・納品"],["orange","出張・会合・イベント"],["brown","会議"],["purple","リモート会議"],["green","発送・予約"],["blue","休み・定休日"],["rose","事務作業"],["sky","飲み会・懇親会"],["pink","バースデー"],["gray","その他"]].map(([c,l]) => `<span><span class="dot" style="--cat:var(--c-${c})"></span>${l}</span>`).join("")}<span><span class="dot" style="--cat:var(--bad)"></span>赤枠＝社用車の重複予約</span></div>`;
   // 個人（自分だけ・特定の人）を選んだ週表示は、日付ごとに縦に並べて先までスクロールできる一覧にする
-  // 表：メンバー×曜日（全員）
+  // 表（全員）：PCは「月」なら1か月ぶん・「週」なら1週間の メンバー×日付。スマホは1週間
+  if(isTable && S.filter === "all"){
+    const pc = mode === "month" ? monthTable() : `<div class="cal-wrap">${weekGrid(days, false, true)}</div>`;
+    return head + `<div class="d-sched">${toolbar}${pc}${legend}</div>` + mobileTable(days);
+  }
+  // 表（自分だけ・特定の人）：PCは「月」なら1か月カレンダー・「週」なら1週間。スマホは1か月カレンダー
   if(isTable){
-    return head + `<div class="d-sched">${toolbar}<div class="cal-wrap">${weekGrid(days, false, true)}</div>${legend}</div>` + mobileTable(days);
+    const pc = mode === "month" ? `<div class="cal-wrap">${monthGrid(true)}</div>` : `<div class="cal-wrap">${weekGrid(days, false)}</div>`;
+    const who = filteredMembers()[0];
+    const title = S.filter === "me" ? "自分の予定" : (who ? who.name + "さん" : "");
+    return head + `<div class="d-sched">${toolbar}${pc}${legend}</div>` +
+      `<div class="m-sched">${mobileToolbar("前の月","次の月")}<div class="mt-range num">${esc(title)}　${S.anchor.getFullYear()}年 ${S.anchor.getMonth()+1}月</div><div class="pm-wrap">${monthGrid(true)}</div></div>`;
   }
   if(mode === "week" && S.filter !== "all"){
     return head + `<div class="d-sched">${toolbar}</div><div class="m-sched">${mobileToolbar("前へ","次へ")}</div>` + personalList();
@@ -1334,7 +1369,7 @@ function filteredMembers(){
 function chip(e, clash, k, rng){
   const multi = e.endDate && e.endDate !== e.date;
   // rng＝表表示：「13:00-14:30」のように終わりの時間まで1行目に出す
-  const tm = rng ? (e.allDay || !e.start ? "終日" : esc(e.start) + (e.end ? "-" + esc(e.end) : "")) : (e.allDay || !e.start ? "" : esc(e.start));
+  const tm = rng ? (e.allDay || !e.start ? "終日" : esc(e.start) + (e.end ? `<span class="te">-${esc(e.end)}</span>` : "")) : (e.allDay || !e.start ? "" : esc(e.start));
   const t = (e.private ? `<span class="lk" title="自分だけの予定">${ic("lock")}</span>` : "") + (tm ? `<span class="t">${tm}</span>` : "");
   if(rng && e.busy) return `<button class="chip busy rng" data-ev="${esc(e.id)}" title="非公開の予定"><span class="t">${tm}</span><span class="lk">${ic("lock")}</span>予定あり</button>`;
   if(rng) return `<button class="chip rng ${e.tripId?"trip":""} ${clash.has(e.id)?"clash":""}" style="${catVar(e.category)}" data-ev="${esc(e.id)}" title="${esc(timeLabel(e) + " " + e.title)}">${t}${esc(e.title)}${extraOf(e, multi)}</button>`;
@@ -1369,6 +1404,13 @@ function layoutToggle(){
 // メンバー（自分が一番上）
 function membersMeFirst(){ const ms = sortedMembers(); const me = ms.find(m => m.id === S.meId); return me ? [me, ...ms.filter(m => m.id !== S.meId)] : ms; }
 // スマホの表：名前は左に固定、曜日は横にスワイプ
+// PCの表（全員・1か月）：名前の列は左に固定して横にスクロール
+function monthTable(){
+  const y = S.anchor.getFullYear(), mo = S.anchor.getMonth();
+  const n = new Date(y, mo + 1, 0).getDate();
+  const days = [...Array(n)].map((_, i) => new Date(y, mo, i + 1));
+  return `<div class="cal-wrap mtab-wrap">${weekGrid(days, false, true).replace('<div class="week">', `<div class="week mtab" style="--n:${n}">`)}</div>`;
+}
 function mobileTable(days){
   const clash = clashSet();
   const td = todayStr();
@@ -1405,8 +1447,9 @@ function weekGrid(days, byFacility, allMembers){
   }
   return `<div class="week">${head}${band}${rows}</div>`;
 }
-function monthGrid(){
+function monthGrid(rng){
   const clash = clashSet();
+  const lim = rng ? 6 : 4;
   const first = new Date(S.anchor.getFullYear(), S.anchor.getMonth(), 1);
   const start = mondayOf(first);
   const ids = new Set(filteredMembers().map(m => m.id));
@@ -1416,7 +1459,7 @@ function monthGrid(){
     if(i === 35 && d.getMonth() !== first.getMonth()) break;
     const evs = S.events.filter(e => onDay(e,k) && (e.allCompany || (e.memberIds||[]).some(id => ids.has(id)))).sort(cmpEv);
     const out = d.getMonth() !== first.getMonth();
-    html += `<div class="mcell ${out?"out":""} ${dayClass(d).join(" ")}" data-add="${S.filter!=="all"&&S.filter!=="me"?S.filter:(S.meId||"")}|${k}"><div class="dn num">${d.getDate()}${HOLIDAYS[k]?`<small>${HOLIDAYS[k]}</small>`:""}</div>${evs.slice(0,4).map(e => chip(e, clash, k)).join("")}${evs.length>4?`<span class="more">ほか${evs.length-4}件</span>`:""}</div>`;
+    html += `<div class="mcell ${out?"out":""} ${dayClass(d).join(" ")}" data-add="${S.filter!=="all"&&S.filter!=="me"?S.filter:(S.meId||"")}|${k}"><div class="dn num">${d.getDate()}${HOLIDAYS[k]?`<small>${HOLIDAYS[k]}</small>`:""}</div>${evs.slice(0,lim).map(e => chip(e, clash, k, rng && !e.allCompany)).join("")}${evs.length>lim?`<span class="more">ほか${evs.length-lim}件</span>`:""}</div>`;
   }
   return `<div class="month">${html}</div>`;
 }
@@ -1427,8 +1470,8 @@ function mobileToolbar(prevLabel = "前の週", nextLabel = "次の週"){
       <button class="btn sm" data-shift="0">今日</button>
       <button class="icon-btn" data-shift="1" aria-label="${nextLabel}">${ic("right")}</button>
       <span class="grow"></span>
-      ${S.schedMode === "week" ? layoutToggle() : ""}
-      ${S.schedMode === "week" && S.layout === "table" ? "" : `<select class="sel" id="filterSelM" style="width:auto;max-width:150px" aria-label="表示するメンバー">${opts.map(([v,l]) => `<option value="${esc(v)}" ${S.filter===v?"selected":""}>${esc(l)}</option>`).join("")}</select>`}
+      ${S.schedMode !== "facility" ? layoutToggle() : ""}
+      ${`<select class="sel" id="filterSelM" style="width:auto;max-width:150px" aria-label="表示するメンバー">${opts.map(([v,l]) => `<option value="${esc(v)}" ${S.filter===v?"selected":""}>${esc(l)}</option>`).join("")}</select>`}
     </div>`;
 }
 // 個人別の一覧：日付の見出し → 会社カレンダー（本社休み・祝日）→ 予定カード。下までスクロールすると先の日が続く
@@ -1934,12 +1977,21 @@ document.addEventListener("click", async e => {
     else openEvent(null, {date, memberId: who || S.meId});
     return;
   }
-  if(el.dataset.layout){ S.layout = el.dataset.layout; ls.set("k2s-layout", S.layout); render(); return; }
+  if(el.dataset.layout){
+    S.layout = el.dataset.layout; ls.set("k2s-layout", S.layout);
+    // PCは画面が広いので、表は1か月・人ごとは1週間で開く
+    const pc = getComputedStyle($(".d-sched") || document.body).display !== "none";
+    if(pc && S.schedMode !== "facility"){ S.schedMode = S.layout === "table" ? "month" : "week"; ls.set("k2s-smode", S.schedMode); }
+    render(); return;
+  }
   if(el.dataset.smode){ S.schedMode = el.dataset.smode; ls.set("k2s-smode", S.schedMode); render(); return; }
   if(el.dataset.shift !== undefined){
     const n = Number(el.dataset.shift);
     S.listDays = 42;
+    const pcView = getComputedStyle($(".d-sched") || document.body).display !== "none";
     if(n === 0){ S.anchor = new Date(); S.mDay = todayStr(); S.scrollToday = true; }
+    else if(!pcView && S.layout === "table" && S.filter !== "all" && S.schedMode !== "facility"){ S.anchor = new Date(S.anchor.getFullYear(), S.anchor.getMonth() + n, 1); }
+    else if(pcView && S.layout === "table" && S.schedMode === "month"){ S.anchor = new Date(S.anchor.getFullYear(), S.anchor.getMonth() + n, 1); }
     else if(S.schedMode === "week" && S.filter !== "all"){ S.anchor = addDays(mondayOf(S.anchor), 7*n); render(); window.scrollTo(0, 0); return; }
     else if(S.schedMode === "month" && getComputedStyle($(".d-sched") || document.body).display !== "none") S.anchor = new Date(S.anchor.getFullYear(), S.anchor.getMonth() + n, 1);
     else { S.anchor = addDays(S.anchor, 7*n); S.mDay = ymd(addDays(fromYmd(S.mDay), 7*n)); }
