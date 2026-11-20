@@ -730,7 +730,9 @@ body{background:radial-gradient(900px 520px at 105% -10%,#FFE6F1 0%,transparent 
 .tl .pl-title{font-size:15px}
 .tl .pl-badge{font-size:11px;padding:1px 7px;background:color-mix(in srgb,var(--cat,#9A93AF) 16%,#fff);color:color-mix(in srgb,var(--cat,#9A93AF) 72%,#1E1530)}
 .tl .pl-card.busy .pl-badge{background:#F1EEF7;color:var(--ink-3)}
-.tl .pl-empty{padding:6px 0 0}
+.tl .pl-empty{padding:9px 0 2px;font-size:13px;color:#B3ACC4}
+.tl-day.empty .tl-body{padding-bottom:12px}
+.tl-day.empty .tl-dn{font-size:20px;opacity:.75}
 @media (min-width:821px){ .tl-day{grid-template-columns:64px minmax(0,1fr)} .tl-week{margin-left:76px} .tl-dn{font-size:26px} }
 </style>
 </head>
@@ -752,7 +754,7 @@ const CATS = [
   {k:"会議",c:"brown"},{k:"リモート会議",c:"purple"},
   {k:"発送",c:"green"},{k:"予約",c:"green"},
   {k:"個人休み",c:"blue"},{k:"本社休み",c:"blue"},{k:"店舗定休日",c:"blue"},
-  {k:"事務作業",c:"rose"},{k:"飲み会",c:"sky"},{k:"懇親会",c:"sky"},
+  {k:"事務作業",c:"rose"},{k:"飲み会",c:"sky"},{k:"懇親会",c:"sky"},{k:"移動",c:"gray"},
   {k:"バースデー",c:"pink"},{k:"その他",c:"gray"}
 ];
 const CAT_COLOR = Object.fromEntries(CATS.map(c => [c.k, c.c]));
@@ -1359,9 +1361,9 @@ function personalList(){
     const off = co.some(e => e.category === "本社休み");
     if(i < 7){ weekCount += evs.length; if(off) weekOff++; }
     if(d.getDay() === 1) html += `<div class="tl-week num">${d.getMonth()+1}/${d.getDate()}（月）〜 ${addDays(d,6).getMonth()+1}/${addDays(d,6).getDate()}（日）</div>`;
-    if(!evs.length && !co.length && !hol && !isToday) continue;
+    // 予定がない日も日付を出す（サイボウズと同じく、日付が飛ばないように）
     const cls = d.getDay() === 6 ? "sat" : (d.getDay() === 0 || hol || off) ? "sun" : "";
-    html += `<section class="tl-day" ${isToday ? 'id="plToday"' : ""}>
+    html += `<section class="tl-day ${!evs.length && !co.length && !hol ? "empty" : ""}" ${isToday ? 'id="plToday"' : ""}>
       <div class="tl-date ${cls} ${isToday ? "today" : ""}"><span class="tl-wd">${WD[d.getDay()]}</span><span class="tl-dn num">${d.getDate()}</span>${isToday ? `<span class="tl-now">今日</span>` : d.getDate() === 1 || i === 0 ? `<span class="tl-mo num">${d.getMonth()+1}月</span>` : ""}</div>
       <div class="tl-body">
         ${hol || co.length ? `<div class="tl-notes">${hol && !co.some(e => e.title.includes(hol)) ? `<span class="tl-pill hol">${esc(hol)}</span>` : ""}${co.map(e => `<button class="tl-pill" data-ev="${esc(e.id)}">${esc(e.title)}</button>`).join("")}</div>` : ""}
