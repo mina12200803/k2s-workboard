@@ -999,7 +999,8 @@ function nextTripNo(){
 
 /* ============ 描画 ============ */
 let raf = 0;
-function render(){ cancelAnimationFrame(raf); raf = requestAnimationFrame(draw); }
+// 画面の描き直し（裏側のタブでも止まらないよう、タイマーでまとめて描く）
+function render(){ clearTimeout(raf); raf = setTimeout(draw, 16); }
 function draw(){
   const root = $("#root");
   if(S.mode === "auth"){ if(!$("#loginForm")) root.innerHTML = viewLogin(); return; }
