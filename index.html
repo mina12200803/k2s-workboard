@@ -5,13 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>K2S ワークボード</title>
 <meta name="description" content="ケーツーエスのスケジュール管理と出張申請">
-<meta name="theme-color" content="#13263D">
+<meta name="theme-color" content="#F4F5F7">
+<meta name="color-scheme" content="light">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-64.png" type="image/png">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="ワークボード">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,7 +33,7 @@
   --f-body:"Noto Sans JP","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
   --r:10px;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+@media not all{:root:not([data-theme="light"]){
   --bg:#0E141A; --surface:#161F28; --surface-2:#1D2833; --line:#283541; --line-2:#36485A;
   --ink:#E5ECF2; --ink-2:#A8B6C4; --ink-3:#7A8898;
   --accent:#78A9E4; --accent-ink:#0B1622; --accent-soft:#1B2D45; --accent-strong:#A2C4EE;
@@ -44,7 +45,7 @@
   --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
   color-scheme:dark;
 }}
-:root[data-theme="dark"]{
+:root[data-theme="dark-disabled"]{
   --bg:#0E141A; --surface:#161F28; --surface-2:#1D2833; --line:#283541; --line-2:#36485A;
   --ink:#E5ECF2; --ink-2:#A8B6C4; --ink-3:#7A8898;
   --accent:#78A9E4; --accent-ink:#0B1622; --accent-soft:#1B2D45; --accent-strong:#A2C4EE;
@@ -398,7 +399,7 @@ button.tr:hover{background:var(--accent-soft)}
   --f-num:"Inter","Noto Sans JP",sans-serif;
   --r:16px;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+@media not all{:root:not([data-theme="light"]){
   --bg:#0A0E14; --surface:#111720; --surface-2:#171F2A; --line:#212A36; --line-2:#2D3846;
   --ink:#E9EEF4; --ink-2:#A3AEBC; --ink-3:#6E7A89;
   --accent:#8DADF4; --accent-ink:#0A1120; --accent-soft:#17223A; --accent-strong:#B6CAF9;
@@ -407,7 +408,7 @@ button.tr:hover{background:var(--accent-soft)}
   --shadow:0 1px 2px rgba(0,0,0,.4),0 18px 40px -12px rgba(0,0,0,.6);
   --shadow-sm:0 1px 2px rgba(0,0,0,.3),0 4px 14px -6px rgba(0,0,0,.4);
 }}
-:root[data-theme="dark"]{
+:root[data-theme="dark-disabled"]{
   --bg:#0A0E14; --surface:#111720; --surface-2:#171F2A; --line:#212A36; --line-2:#2D3846;
   --ink:#E9EEF4; --ink-2:#A3AEBC; --ink-3:#6E7A89;
   --accent:#8DADF4; --accent-ink:#0A1120; --accent-soft:#17223A; --accent-strong:#B6CAF9;
@@ -520,6 +521,52 @@ img{max-width:100%}
 .login-card{width:min(380px,100%);background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:32px 28px;box-shadow:var(--shadow);text-align:center}
 .login-card h1{font-size:24px;font-weight:900;margin-top:14px}
 .brand-mark.big{width:56px;height:56px;border-radius:14px;font-size:18px;margin:0 auto;background:var(--side);color:#fff}
+/* ================= パステル配色（ネイビーをやめて明るく華やかに） ================= */
+:root{
+  --bg:#FAF7FF; --surface:#FFFFFF; --surface-2:#F5F1FC; --line:#EDE7F6; --line-2:#DCD3EC;
+  --ink:#2B2541; --ink-2:#5F5878; --ink-3:#9A93AF;
+  --accent:#7C6BF2; --accent-ink:#FFFFFF; --accent-soft:#F0ECFF; --accent-strong:#6553E0;
+  --side:#F3EEFF; --side-2:#E6F7F2; --side-ink:#2B2541; --side-ink-2:#6E6789; --side-hi:#FFFFFF;
+  --today:#FFF8DD; --weekend:#FCFAFF; --hol:#FFF1F5;
+  --grad-main:linear-gradient(135deg,#8E7CFF 0%,#FF8FB8 100%);
+  --shadow:0 1px 2px rgba(80,60,140,.06),0 18px 40px -14px rgba(110,80,200,.24);
+  --shadow-sm:0 1px 2px rgba(80,60,140,.05),0 6px 16px -8px rgba(110,80,200,.16);
+}
+body{background:radial-gradient(900px 520px at 105% -10%,#FFE6F1 0%,transparent 60%),radial-gradient(820px 520px at -10% 110%,#DDF6EF 0%,transparent 60%),var(--bg);background-attachment:fixed}
+/* サイドバー：ミント → ラベンダー → ピンク */
+.side{background:linear-gradient(180deg,#E3F6F0 0%,#EFEAFF 52%,#FFEDF4 100%);border-right:1px solid var(--line)}
+.brand-mark{background:url(favicon-64.png) center/cover no-repeat;color:transparent;box-shadow:0 6px 14px -6px rgba(15,181,154,.55)}
+.brand b{color:var(--side-ink)}
+.brand small{color:var(--side-ink-2)}
+.nav button{color:var(--side-ink-2)}
+.nav button:hover{color:var(--side-ink);background:rgba(255,255,255,.6)}
+.nav button[aria-current="page"]{background:#fff;color:var(--accent-strong);box-shadow:var(--shadow-sm)}
+.nav button[aria-current="page"] svg.i{color:var(--accent)}
+.whoami{background:rgba(255,255,255,.75);border:1px solid var(--line);color:var(--side-ink)}
+.whoami small,.mode-note{color:var(--side-ink-2)}
+.badge{background:#FF6B9A;box-shadow:0 0 0 2px #fff}
+/* ボタン・強調 */
+.btn.primary,.fab{background:var(--grad-main);border-color:transparent;color:#fff;box-shadow:0 10px 20px -10px rgba(170,110,240,.7)}
+.btn.primary:hover{background:linear-gradient(135deg,#7C6BF2 0%,#FF7AAA 100%);border-color:transparent}
+.week .h.is-today .d{background:var(--grad-main);color:#fff;box-shadow:0 6px 14px -6px rgba(255,120,170,.7)}
+.daystrip button[aria-pressed="true"]{background:var(--grad-main);border-color:transparent}
+.seg button[aria-pressed="true"]{color:var(--accent-strong)}
+/* ホームの数字カードを色分け */
+.stats .stat:nth-child(1){background:linear-gradient(135deg,#FFEFF6 0%,#FFFFFF 75%);border-color:#FBDDEA}
+.stats .stat:nth-child(2){background:linear-gradient(135deg,#EFEBFF 0%,#FFFFFF 75%);border-color:#E2DBFB}
+.stats .stat:nth-child(3){background:linear-gradient(135deg,#E5F8F2 0%,#FFFFFF 75%);border-color:#CFEFE5}
+.stats .stat:nth-child(1) .v{color:#E2558A}
+.stats .stat:nth-child(2) .v{color:#6E5AE6}
+.stats .stat:nth-child(3) .v{color:#16A389}
+.panel{border-color:var(--line)}
+.hello h1{background:linear-gradient(90deg,#6E5AE6,#E2558A);-webkit-background-clip:text;background-clip:text;color:transparent}
+/* 会社カレンダーの行はミント */
+.band{background:color-mix(in srgb,#2EC4A6 9%,#FFFFFF)}
+.rowhead.band .nm{color:#13A388}
+/* ログイン・合言葉の画面 */
+.login{background:radial-gradient(700px 420px at 15% 0%,#E3F6F0 0%,transparent 65%),radial-gradient(700px 420px at 90% 10%,#FFE6F1 0%,transparent 65%),radial-gradient(800px 500px at 50% 110%,#EFEAFF 0%,transparent 65%),var(--bg)}
+.brand-mark.big{background:url(icon-192.png) center/cover no-repeat;color:transparent;width:72px;height:72px;border-radius:18px;box-shadow:0 12px 26px -12px rgba(15,181,154,.6)}
+.login-card h1{color:var(--ink)}
 </style>
 </head>
 <body>
