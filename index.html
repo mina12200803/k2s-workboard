@@ -654,6 +654,31 @@ body{background:radial-gradient(900px 520px at 105% -10%,#FFE6F1 0%,transparent 
 .mcell{border:0;border-top:1px solid #F2EEF8;padding:8px}
 .mcell.out{background:rgba(250,248,255,.5)}
 .mcell.is-today{background:linear-gradient(180deg,rgba(255,238,246,.75),rgba(239,234,255,.55))}
+/* ================= スマホのスケジュール（全員表示）もPCと同じ雰囲気に ================= */
+.daystrip{gap:6px;margin-bottom:16px}
+.daystrip button{border:0;background:rgba(255,255,255,.85);border-radius:16px;padding:8px 0 9px;box-shadow:0 1px 2px rgba(80,60,140,.05),0 8px 16px -10px rgba(110,80,200,.3);color:var(--ink-3);font-weight:600;letter-spacing:.06em}
+.daystrip button b{font-weight:600;font-size:19px}
+.daystrip button.sat b{color:#5B8DEF}
+.daystrip button.sun b,.daystrip button.hol b{color:#E2558A}
+.daystrip button.is-today:not([aria-pressed="true"]){box-shadow:0 0 0 2px #F5B8D0 inset,0 8px 16px -10px rgba(110,80,200,.3)}
+.daystrip button[aria-pressed="true"]{background:var(--grad-main);color:#fff;box-shadow:0 10px 20px -10px rgba(200,110,220,.8)}
+.daystrip button[aria-pressed="true"] b{color:#fff}
+.daystrip .dots i{width:5px;height:5px;background:currentColor;opacity:.55}
+.m-sched h2{font-size:17px!important;font-weight:700;letter-spacing:.02em;margin:6px 2px 12px!important}
+.m-list{gap:10px}
+.m-item{position:relative;border:1px solid #EFEAF7;background:#fff;border-radius:16px;padding:14px 14px 14px 16px;box-shadow:0 1px 2px rgba(80,60,140,.05),0 10px 22px -14px rgba(110,80,200,.35);gap:12px}
+.m-item .tm{font-size:13px;color:var(--ink-3);font-weight:600;min-width:58px;padding-top:1px}
+.m-item .ttl{font-size:15px;font-weight:600;line-height:1.45}
+.m-item .ttl .dot{width:8px;height:8px;margin-right:7px}
+.m-item .who{margin-top:8px;gap:6px;font-size:12px}
+.m-item .who .av.sm{width:20px;height:20px;font-size:10px;box-shadow:0 0 0 2px #fff}
+.m-sched .toolbar .icon-btn,.m-sched .toolbar .btn,.m-sched .toolbar .sel{border:0;background:rgba(255,255,255,.85);box-shadow:0 1px 2px rgba(80,60,140,.05),0 6px 14px -8px rgba(110,80,200,.3)}
+/* 個人別の一覧カードも少し上品に */
+.pl-card{background:#fff;border:1px solid #EFEAF7;box-shadow:0 1px 2px rgba(80,60,140,.05),0 10px 22px -14px rgba(110,80,200,.35)}
+.pl-card:hover{background:#fff}
+.pl-card::before{top:12px;bottom:12px;left:8px;width:4px}
+.pl-card.trip{background:linear-gradient(135deg,#FFF4E8,#fff 70%)}
+.pl-date{border-bottom-color:#EFEAF7}
 </style>
 </head>
 <body>
