@@ -1038,7 +1038,7 @@ function dayClass(d){
 function weekGrid(days, byFacility){
   const clash = clashSet();
   const head = `<div class="h">${byFacility ? "施設・社用車" : "メンバー"}</div>` + days.map(d => { const k = ymd(d); return `<div class="h ${dayClass(d).join(" ")}"><span class="d num">${d.getDate()}</span><span class="w">${WD[d.getDay()]}</span>${HOLIDAYS[k]?`<span class="hn">${HOLIDAYS[k]}</span>`:""}</div>`; }).join("");
-  const band = `<div class="rowhead band"><div class="nm">本社休み・全社<small>空欄を押すと追加</small></div></div>` + days.map(d => { const k = ymd(d); const evs = S.events.filter(e => e.allCompany && onDay(e,k)).sort(cmpEv); return `<div class="cell band ${dayClass(d).filter(c=>c!=="sun"&&c!=="sat").join(" ")}" data-add="all|${k}">${evs.map(e => chip(e, clash, k)).join("")}</div>`; }).join("");
+  const band = `<div class="rowhead band" title="空いているマスを押すと、休業日や全社の予定を追加できます"><div class="nm">会社カレンダー<small>休業日・全社の予定</small></div></div>` + days.map(d => { const k = ymd(d); const evs = S.events.filter(e => e.allCompany && onDay(e,k)).sort(cmpEv); return `<div class="cell band ${dayClass(d).filter(c=>c!=="sun"&&c!=="sat").join(" ")}" data-add="all|${k}">${evs.map(e => chip(e, clash, k)).join("")}</div>`; }).join("");
   let rows = "";
   if(byFacility){
     for(const f of FACILITIES){
