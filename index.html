@@ -673,6 +673,48 @@ body{background:radial-gradient(900px 520px at 105% -10%,#FFE6F1 0%,transparent 
 .m-item .who{margin-top:8px;gap:6px;font-size:12px}
 .m-item .who .av.sm{width:20px;height:20px;font-size:10px;box-shadow:0 0 0 2px #fff}
 .m-sched .toolbar .icon-btn,.m-sched .toolbar .btn,.m-sched .toolbar .sel{border:0;background:rgba(255,255,255,.85);box-shadow:0 1px 2px rgba(80,60,140,.05),0 6px 14px -8px rgba(110,80,200,.3)}
+/* ================= 「人ごと｜表」切り替え ================= */
+.lay-tg{display:inline-flex;gap:2px;padding:3px;border-radius:999px;background:rgba(255,255,255,.85);box-shadow:0 1px 2px rgba(80,60,140,.05),0 6px 14px -8px rgba(110,80,200,.3)}
+.lay-tg button{display:inline-flex;align-items:center;gap:5px;border:0;background:transparent;border-radius:999px;padding:6px 13px;font-size:13px;font-weight:600;color:var(--ink-3);cursor:pointer;white-space:nowrap}
+.lay-tg button svg{width:15px;height:15px}
+.lay-tg button[aria-pressed="true"]{background:var(--grad-main);color:#fff;box-shadow:0 6px 14px -8px rgba(200,110,220,.8)}
+/* 表：時間を1行目に大きく */
+.chip.rng{padding:6px 8px}
+.chip.rng::before{display:none}
+.chip.rng{border-left:3px solid var(--cat)}
+.chip.rng .t{display:block;margin:0 0 1px;font-size:12px;font-weight:700;color:var(--ink)}
+.chip.rng .lk{float:right}
+.chip.busy.rng{border-left:1px dashed var(--line-2)}
+/* PCの「人ごと×全員」はスマホと同じカード表示 */
+.m-sched.always{display:block;max-width:780px}
+@media (min-width:821px){ .m-sched.always>.toolbar{display:none} }
+/* スマホの表 */
+.mt-range{display:flex;align-items:baseline;justify-content:space-between;font-weight:700;font-size:15px;margin:2px 2px 10px}
+.mt-range span{font-size:11px;font-weight:500;color:var(--ink-3)}
+.mt-wrap{position:relative;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:18px;background:rgba(255,255,255,.85);box-shadow:0 1px 2px rgba(80,60,140,.05),0 18px 36px -22px rgba(110,80,200,.35)}
+.mt-grid{display:grid;grid-template-columns:62px repeat(7,96px);width:max-content}
+.mt-grid>div{border-bottom:1px solid #F2EEF8;border-left:1px solid #F2EEF8;padding:5px 4px;min-width:0}
+.mt-h{text-align:center;padding:8px 2px!important;position:sticky;top:0;background:#fff;z-index:1}
+.mt-h .w{display:block;font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--ink-3)}
+.mt-h b{font-size:18px;font-weight:600}
+.mt-h small{display:block;font-size:9.5px;color:#E2558A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mt-h.sat b{color:#5B8DEF}.mt-h.sun b,.mt-h.hol b{color:#E2558A}
+.mt-h.is-today{background:linear-gradient(180deg,#FFEEF6,#F3EEFF)}
+.mt-corner,.mt-name{position:sticky;left:0;z-index:2;background:#fff;border-left:0!important}
+.mt-corner{z-index:3}
+.mt-name{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;font-size:11px;font-weight:600;text-align:center;line-height:1.25;padding-top:8px!important}
+.mt-name .av{width:26px;height:26px;font-size:11px}
+.mt-name.me{background:#FFF7FB}
+.mt-name.band{color:#13A388;font-size:10.5px;justify-content:center}
+.mt-cell.weekend,.mt-cell.hol{background:rgba(247,244,252,.7)}
+.mt-cell.is-today{background:rgba(255,238,246,.55)}
+.mt-co{display:block;width:100%;border:0;border-radius:8px;background:linear-gradient(135deg,#E3F7F0,#EEE9FF);color:#127F6B;font-size:10.5px;font-weight:600;padding:3px 2px;margin-bottom:3px}
+.mt-ev{display:block;width:100%;text-align:left;border:1px solid #EFEAF7;border-left:3px solid var(--cat);background:#fff;border-radius:8px;padding:3px 4px;margin-bottom:4px;line-height:1.3;cursor:pointer}
+.mt-ev .t{display:block;font-size:10.5px;font-weight:700;color:var(--ink)}
+.mt-ev .x{display:block;font-size:10px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mt-ev.busy{border:1px dashed var(--line-2);background:repeating-linear-gradient(135deg,#F7F4FC 0 6px,#fff 6px 12px)}
+.mt-ev.clash{border-color:#F28BA8}
+.m-sched .toolbar .lay-tg button{padding:6px 10px}
 /* 個人別の一覧カードも少し上品に */
 .pl-card{background:#fff;border:1px solid #EFEAF7;box-shadow:0 1px 2px rgba(80,60,140,.05),0 10px 22px -14px rgba(110,80,200,.35)}
 .pl-card:hover{background:#fff}
@@ -825,6 +867,7 @@ const ICON = {
   warn:'<path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17h.01"/>',
   info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
   user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
+  grid:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14.5h18M9 4v16"/>',
   copy:'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
   trash:'<path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15"/>',
   lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'
@@ -837,7 +880,7 @@ const S = {
   route:{managerId:"",presidentId:"",accountingId:""},
   meId:null, viewerId:null, loadedCols:new Set(), slow:false,
   view: (ls.get("k2s-view") || "home"),
-  anchor: new Date(), schedMode: (ls.get("k2s-smode") || "week"), filter: (ls.get("k2s-filter") || "all"),
+  anchor: new Date(), schedMode: (ls.get("k2s-smode") || "week"), layout: (ls.get("k2s-layout") || "person"), filter: (ls.get("k2s-filter") || "all"),
   mDay: todayStr(), tripTab: "inbox", modal:null
 };
 let DB = null, USER = null, LOCAL = null;
@@ -1179,6 +1222,8 @@ function draw(){
   const banner = S.slow ? `<div class="banner warn">${ic("warn")}<span>サーバーに接続できていません（オフラインの可能性があります）。表示が古いことがあります。入力した内容は、つながったときに送信されます。</span></div>`
     : S.mode === "local" ? `<div class="banner info">${ic("info")}<span>お試しモードです。入力した内容はこの端末の中だけに保存され、ほかの人には共有されません。共有するには手順書に沿ってサーバー（Firebase）を設定してください。</span></div>` : "";
   const fabAction = S.view === "trips" ? "new-trip" : S.view === "settings" ? "" : "new-event";
+  const oldMt = document.querySelector(".mt-wrap"), mtKey = ymd(mondayOf(S.anchor));
+  const keepMt = oldMt && oldMt.dataset.week === mtKey ? oldMt.scrollLeft : null;
   root.innerHTML = `
   <div class="app">
     <aside class="side">
@@ -1195,6 +1240,10 @@ function draw(){
   </div>`;
   if(ready && !S.slow && (!S.meId || !mem(S.meId)) && !S.modal) openWho(true);
   if(S.modal && S.modal.type === "trip-detail") refreshTripDetail();
+  // スマホの表：今日の列が見えるように横スクロール
+  // （同じ週を描き直したときは、見ていた位置をそのまま保つ）
+  { const w = document.querySelector(".mt-wrap"); if(w){ w.dataset.week = mtKey; const th = w.querySelector(".mt-h.is-today");
+    if(keepMt !== null) w.scrollLeft = keepMt; else if(th) w.scrollLeft = Math.max(0, th.offsetLeft - 62); } }
   if(S.scrollToday){ S.scrollToday = false; const t = document.getElementById("plToday"); if(t) setTimeout(() => t.scrollIntoView({block:"start", behavior:"smooth"}), 30); }
 }
 
@@ -1241,8 +1290,10 @@ function viewSchedule(){
   if(mode === "month") range = `${S.anchor.getFullYear()}年 ${S.anchor.getMonth()+1}月`;
   else range = `${days[0].getFullYear()}年 ${days[0].getMonth()+1}月${days[0].getDate()}日 〜 ${days[6].getMonth()+1}月${days[6].getDate()}日`;
   const opts = [["all","全員"],["me","自分だけ"], ...sortedMembers().map(m => [m.id, m.name])];
+  const isTable = mode === "week" && S.layout === "table";
   const toolbar = `
   <div class="toolbar">
+    ${mode === "week" ? layoutToggle() : ""}
     <div class="seg" role="group" aria-label="表示切替">
       <button data-smode="week" aria-pressed="${mode==="week"}">週</button>
       <button data-smode="month" aria-pressed="${mode==="month"}">月</button>
@@ -1253,7 +1304,7 @@ function viewSchedule(){
     <button class="icon-btn" data-shift="1" aria-label="次へ">${ic("right")}</button>
     <span class="range num">${range}</span>
     <span class="grow"></span>
-    ${mode !== "facility" ? `<label class="sr" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2)">表示 <select class="sel" id="filterSel" style="width:auto">${opts.map(([v,l]) => `<option value="${esc(v)}" ${S.filter===v?"selected":""}>${esc(l)}</option>`).join("")}</select></label>` : ""}
+    ${mode !== "facility" && !isTable ? `<label class="sr" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2)">表示 <select class="sel" id="filterSel" style="width:auto">${opts.map(([v,l]) => `<option value="${esc(v)}" ${S.filter===v?"selected":""}>${esc(l)}</option>`).join("")}</select></label>` : ""}
   </div>`;
   const head = `<div class="page-head"><div><h1>スケジュール</h1><div class="sub">空いているマスをクリックすると、その人・その日で予定を登録できます</div></div><div class="actions"><button class="btn primary" data-act="new-event">${ic("plus")}予定を登録</button></div></div>`;
   let grid;
@@ -1261,8 +1312,16 @@ function viewSchedule(){
   else grid = weekGrid(days, mode === "facility");
   const legend = `<div class="legend">${[["red","商談・打合・納品"],["orange","出張・会合・イベント"],["brown","会議"],["purple","リモート会議"],["green","発送・予約"],["blue","休み・定休日"],["rose","事務作業"],["sky","飲み会・懇親会"],["pink","バースデー"],["gray","その他"]].map(([c,l]) => `<span><span class="dot" style="--cat:var(--c-${c})"></span>${l}</span>`).join("")}<span><span class="dot" style="--cat:var(--bad)"></span>赤枠＝社用車の重複予約</span></div>`;
   // 個人（自分だけ・特定の人）を選んだ週表示は、日付ごとに縦に並べて先までスクロールできる一覧にする
+  // 表：メンバー×曜日（全員）
+  if(isTable){
+    return head + `<div class="d-sched">${toolbar}<div class="cal-wrap">${weekGrid(days, false, true)}</div>${legend}</div>` + mobileTable(days);
+  }
   if(mode === "week" && S.filter !== "all"){
     return head + `<div class="d-sched">${toolbar}</div><div class="m-sched">${mobileToolbar("前へ","次へ")}</div>` + personalList();
+  }
+  // 人ごと × 全員：PCでもスマホと同じ「その日の予定を人ごとのカード」で見せる
+  if(mode === "week"){
+    return head + `<div class="d-sched">${toolbar}</div>` + mobileSched(days).replace('class="m-sched"', 'class="m-sched always"');
   }
   return head + `<div class="d-sched">${toolbar}<div class="cal-wrap">${grid}</div>${legend}</div>` + mobileSched(days);
 }
@@ -1272,14 +1331,24 @@ function filteredMembers(){
   if(S.filter === "me") return ms.filter(m => m.id === S.meId);
   return ms.filter(m => m.id === S.filter);
 }
-function chip(e, clash, k){
+function chip(e, clash, k, rng){
   const multi = e.endDate && e.endDate !== e.date;
-  const t = (e.private ? `<span class="lk" title="自分だけの予定">${ic("lock")}</span>` : "") + (e.allDay || !e.start ? "" : `<span class="t">${esc(e.start)}</span>`);
+  // rng＝表表示：「13:00-14:30」のように終わりの時間まで1行目に出す
+  const tm = rng ? (e.allDay || !e.start ? "終日" : esc(e.start) + (e.end ? "-" + esc(e.end) : "")) : (e.allDay || !e.start ? "" : esc(e.start));
+  const t = (e.private ? `<span class="lk" title="自分だけの予定">${ic("lock")}</span>` : "") + (tm ? `<span class="t">${tm}</span>` : "");
+  if(rng && e.busy) return `<button class="chip busy rng" data-ev="${esc(e.id)}" title="非公開の予定"><span class="t">${tm}</span><span class="lk">${ic("lock")}</span>予定あり</button>`;
+  if(rng) return `<button class="chip rng ${e.tripId?"trip":""} ${clash.has(e.id)?"clash":""}" style="${catVar(e.category)}" data-ev="${esc(e.id)}" title="${esc(timeLabel(e) + " " + e.title)}">${t}${esc(e.title)}${extraOf(e, multi)}</button>`;
   const extra = [];
   if(multi) extra.push(`${mdShort(e.date)}〜${mdShort(e.endDate)}`);
   if((e.facilityIds||[]).length) extra.push(e.facilityIds.map(f => (fac(f)||{}).name || "").join("、"));
   if(e.busy) return `<button class="chip busy" data-ev="${esc(e.id)}" title="非公開の予定"><span class="lk">${ic("lock")}</span>${e.allDay || !e.start ? "" : `<span class="t">${esc(e.start)}${e.end ? "–" + esc(e.end) : ""}</span>`}予定あり</button>`;
   return `<button class="chip ${e.tripId?"trip":""} ${clash.has(e.id)?"clash":""}" style="${catVar(e.category)}" data-ev="${esc(e.id)}" title="${esc(timeLabel(e) + " " + e.title)}">${t}${esc(e.title)}${extra.length?`<span class="x">${esc(extra.join("・"))}</span>`:""}</button>`;
+}
+function extraOf(e, multi){
+  const extra = [];
+  if(multi) extra.push(`${mdShort(e.date)}〜${mdShort(e.endDate)}`);
+  if((e.facilityIds||[]).length) extra.push(e.facilityIds.map(f => (fac(f)||{}).name || "").join("、"));
+  return extra.length ? `<span class="x">${esc(extra.join("・"))}</span>` : "";
 }
 function dayClass(d){
   const k = ymd(d); const c = [];
@@ -1289,7 +1358,36 @@ function dayClass(d){
   if(k === todayStr()) c.push("is-today");
   return c;
 }
-function weekGrid(days, byFacility){
+// 「人ごと｜表」の切り替えボタン
+function layoutToggle(){
+  const L = S.layout === "table" ? "table" : "person";
+  return `<div class="lay-tg" role="group" aria-label="見え方の切り替え">
+    <button data-layout="person" aria-pressed="${L==="person"}">${ic("user")}人ごと</button>
+    <button data-layout="table" aria-pressed="${L==="table"}">${ic("grid")}表</button>
+  </div>`;
+}
+// メンバー（自分が一番上）
+function membersMeFirst(){ const ms = sortedMembers(); const me = ms.find(m => m.id === S.meId); return me ? [me, ...ms.filter(m => m.id !== S.meId)] : ms; }
+// スマホの表：名前は左に固定、曜日は横にスワイプ
+function mobileTable(days){
+  const clash = clashSet();
+  const td = todayStr();
+  const cls = d => dayClass(d).join(" ");
+  let h = `<div class="mt-h mt-corner"></div>` + days.map(d => { const k = ymd(d); return `<div class="mt-h ${cls(d)}"><span class="w">${WD[d.getDay()]}</span><b class="num">${d.getDate()}</b>${HOLIDAYS[k]?`<small>${esc(HOLIDAYS[k])}</small>`:""}</div>`; }).join("");
+  h += `<div class="mt-name band">会社<br>カレンダー</div>` + days.map(d => { const k = ymd(d); const evs = S.events.filter(e => e.allCompany && onDay(e,k)).sort(cmpEv); return `<div class="mt-cell band ${cls(d)}" data-add="all|${k}">${evs.map(e => `<button class="mt-co" data-ev="${esc(e.id)}">${esc(e.title)}</button>`).join("")}</div>`; }).join("");
+  const ev = e => {
+    const time = e.allDay || !e.start ? "終日" : `${esc(e.start)}${e.end ? "-" + esc(e.end) : ""}`;
+    if(e.busy) return `<button class="mt-ev busy" data-ev="${esc(e.id)}"><span class="t num">${time}</span><span class="x">予定あり</span></button>`;
+    return `<button class="mt-ev ${clash.has(e.id)?"clash":""}" style="${catVar(e.category)}" data-ev="${esc(e.id)}"><span class="t num">${time}</span><span class="x">${esc(e.title)}</span></button>`;
+  };
+  for(const m of membersMeFirst()){
+    const isMe = m.id === S.meId;
+    h += `<div class="mt-name ${isMe?"me":""}">${av(m.id, true)}<span>${esc(m.name)}</span></div>` + days.map(d => { const k = ymd(d); const evs = S.events.filter(e => onDay(e,k) && (e.memberIds||[]).includes(m.id) && !e.allCompany).sort(cmpEv); return `<div class="mt-cell ${cls(d)}" data-add="${m.id}|${k}">${evs.map(ev).join("")}</div>`; }).join("");
+  }
+  const r = `${days[0].getMonth()+1}月${days[0].getDate()}日 〜 ${days[6].getMonth()+1}月${days[6].getDate()}日`;
+  return `<div class="m-sched">${mobileToolbar()}<div class="mt-range num">${r}<span>横にスワイプで他の曜日</span></div><div class="mt-wrap"><div class="mt-grid">${h}</div></div></div>`;
+}
+function weekGrid(days, byFacility, allMembers){
   const clash = clashSet();
   const head = `<div class="h">${byFacility ? "社用車" : "メンバー"}</div>` + days.map(d => { const k = ymd(d); return `<div class="h ${dayClass(d).join(" ")}"><span class="d num">${d.getDate()}</span><span class="w">${WD[d.getDay()]}</span>${HOLIDAYS[k]?`<span class="hn">${HOLIDAYS[k]}</span>`:""}</div>`; }).join("");
   const band = `<div class="rowhead band" title="休業日・全社の予定（空いているマスを押すと追加できます）"><div class="nm">会社カレンダー</div></div>` + days.map(d => { const k = ymd(d); const evs = S.events.filter(e => e.allCompany && onDay(e,k)).sort(cmpEv); return `<div class="cell band ${dayClass(d).filter(c=>c!=="sun"&&c!=="sat").join(" ")}" data-add="all|${k}">${evs.map(e => chip(e, clash, k)).join("")}</div>`; }).join("");
@@ -1299,11 +1397,11 @@ function weekGrid(days, byFacility){
       rows += `<div class="rowhead"><div class="nm">${esc(f.name)}<small>${f.g}</small></div></div>` + days.map(d => { const k = ymd(d); const evs = S.events.filter(e => onDay(e,k) && (e.facilityIds||[]).includes(f.id)).sort(cmpEv); return `<div class="cell ${dayClass(d).filter(c=>c!=="sun"&&c!=="sat").join(" ")}" data-add="fac:${f.id}|${k}">${evs.map(e => chip(e, clash, k)).join("")}<span class="add" aria-hidden="true">${ic("plus")}</span></div>`; }).join("");
     }
   } else {
-    for(const m of filteredMembers()){
+    for(const m of (allMembers ? membersMeFirst() : filteredMembers())){
       const isMe = m.id === S.meId;
-      rows += `<div class="rowhead ${isMe?"me":""}">${av(m.id, true)}<div class="nm">${esc(m.name)}${isMe ? "<small>あなた</small>" : ""}</div></div>` + days.map(d => { const k = ymd(d); const evs = S.events.filter(e => onDay(e,k) && (e.memberIds||[]).includes(m.id) && !e.allCompany).sort(cmpEv); return `<div class="cell ${dayClass(d).filter(c=>c!=="sun"&&c!=="sat").join(" ")}" data-add="${m.id}|${k}">${evs.map(e => chip(e, clash, k)).join("")}<span class="add" aria-hidden="true">${ic("plus")}</span></div>`; }).join("");
+      rows += `<div class="rowhead ${isMe?"me":""}">${av(m.id, true)}<div class="nm">${esc(m.name)}${isMe ? "<small>あなた</small>" : ""}</div></div>` + days.map(d => { const k = ymd(d); const evs = S.events.filter(e => onDay(e,k) && (e.memberIds||[]).includes(m.id) && !e.allCompany).sort(cmpEv); return `<div class="cell ${dayClass(d).filter(c=>c!=="sun"&&c!=="sat").join(" ")}" data-add="${m.id}|${k}">${evs.map(e => chip(e, clash, k, true)).join("")}<span class="add" aria-hidden="true">${ic("plus")}</span></div>`; }).join("");
     }
-    if(!filteredMembers().length) rows = `<div class="rowhead" style="grid-column:1/-1">表示するメンバーがいません。設定でメンバーを登録し、利用者を選んでください。</div>`;
+    if(!(allMembers ? membersMeFirst() : filteredMembers()).length) rows = `<div class="rowhead" style="grid-column:1/-1">表示するメンバーがいません。設定でメンバーを登録し、利用者を選んでください。</div>`;
   }
   return `<div class="week">${head}${band}${rows}</div>`;
 }
@@ -1329,7 +1427,8 @@ function mobileToolbar(prevLabel = "前の週", nextLabel = "次の週"){
       <button class="btn sm" data-shift="0">今日</button>
       <button class="icon-btn" data-shift="1" aria-label="${nextLabel}">${ic("right")}</button>
       <span class="grow"></span>
-      <select class="sel" id="filterSelM" style="width:auto;max-width:150px" aria-label="表示するメンバー">${opts.map(([v,l]) => `<option value="${esc(v)}" ${S.filter===v?"selected":""}>${esc(l)}</option>`).join("")}</select>
+      ${S.schedMode === "week" ? layoutToggle() : ""}
+      ${S.schedMode === "week" && S.layout === "table" ? "" : `<select class="sel" id="filterSelM" style="width:auto;max-width:150px" aria-label="表示するメンバー">${opts.map(([v,l]) => `<option value="${esc(v)}" ${S.filter===v?"selected":""}>${esc(l)}</option>`).join("")}</select>`}
     </div>`;
 }
 // 個人別の一覧：日付の見出し → 会社カレンダー（本社休み・祝日）→ 予定カード。下までスクロールすると先の日が続く
@@ -1816,7 +1915,7 @@ async function tripAct(kind){
 
 /* ============ イベント処理 ============ */
 document.addEventListener("click", async e => {
-  const el = e.target.closest("[data-nav],[data-act],[data-ev],[data-trip],[data-add],[data-smode],[data-shift],[data-ttab],[data-mday],[data-pickme],[data-close],[data-tp],[data-mdel]");
+  const el = e.target.closest("[data-nav],[data-act],[data-ev],[data-trip],[data-add],[data-smode],[data-layout],[data-shift],[data-ttab],[data-mday],[data-pickme],[data-close],[data-tp],[data-mdel]");
   if(!el){ if(e.target.matches("[data-scrim]") && S.modal && S.modal.type !== "who") closeModal(); return; }
   if(el.dataset.close !== undefined){ closeModal(); return; }
   if(el.dataset.nav){ S.view = el.dataset.nav; ls.set("k2s-view", S.view); if(el.dataset.tab) S.tripTab = el.dataset.tab; render(); window.scrollTo(0,0); return; }
@@ -1835,6 +1934,7 @@ document.addEventListener("click", async e => {
     else openEvent(null, {date, memberId: who || S.meId});
     return;
   }
+  if(el.dataset.layout){ S.layout = el.dataset.layout; ls.set("k2s-layout", S.layout); render(); return; }
   if(el.dataset.smode){ S.schedMode = el.dataset.smode; ls.set("k2s-smode", S.schedMode); render(); return; }
   if(el.dataset.shift !== undefined){
     const n = Number(el.dataset.shift);
