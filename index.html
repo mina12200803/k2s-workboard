@@ -35,7 +35,7 @@
   --side:#13263D; --side-ink:#D5E0EC; --side-ink-2:#8DA2B9; --side-hi:#22406A;
   --hanko:#C8372D; --hanko-soft:#FBE9E7;
   --ok:#1D7A57; --ok-soft:#E1F3EB; --warn:#9A6512; --warn-soft:#FBF0D9; --bad:#B83A33; --bad-soft:#FBE6E4;
-  --c-red:#D9443B; --c-orange:#DE8A1E; --c-brown:#9A7656; --c-purple:#7D5BC4; --c-green:#2E9A62; --c-blue:#3270C9; --c-pink:#D2588E; --c-gray:#8592A0;
+  --c-red:#D9443B; --c-orange:#DE8A1E; --c-brown:#9A7656; --c-purple:#7D5BC4; --c-green:#2E9A62; --c-blue:#3270C9; --c-pink:#D2588E; --c-gray:#8592A0; --c-rose:#EE8FA9; --c-sky:#5DB7E6;
   --today:#FFF7E3; --weekend:#F6F8FA; --hol:#FCEEEE;
   --shadow:0 1px 2px rgba(20,32,43,.06),0 8px 24px rgba(20,32,43,.08);
   --f-display:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
@@ -624,6 +624,7 @@ const CATS = [
   {k:"会議",c:"brown"},{k:"リモート会議",c:"purple"},
   {k:"発送",c:"green"},{k:"予約",c:"green"},
   {k:"個人休み",c:"blue"},{k:"本社休み",c:"blue"},{k:"店舗定休日",c:"blue"},
+  {k:"事務作業",c:"rose"},{k:"飲み会",c:"sky"},{k:"懇親会",c:"sky"},
   {k:"バースデー",c:"pink"},{k:"その他",c:"gray"}
 ];
 const CAT_COLOR = Object.fromEntries(CATS.map(c => [c.k, c.c]));
@@ -1127,7 +1128,7 @@ function viewSchedule(){
   let grid;
   if(mode === "month") grid = monthGrid();
   else grid = weekGrid(days, mode === "facility");
-  const legend = `<div class="legend">${[["red","商談・打合・納品"],["orange","出張・会合・イベント"],["brown","会議"],["purple","リモート会議"],["green","発送・予約"],["blue","休み・定休日"],["pink","バースデー"],["gray","その他"]].map(([c,l]) => `<span><span class="dot" style="--cat:var(--c-${c})"></span>${l}</span>`).join("")}<span><span class="dot" style="--cat:var(--bad)"></span>赤枠＝社用車の重複予約</span></div>`;
+  const legend = `<div class="legend">${[["red","商談・打合・納品"],["orange","出張・会合・イベント"],["brown","会議"],["purple","リモート会議"],["green","発送・予約"],["blue","休み・定休日"],["rose","事務作業"],["sky","飲み会・懇親会"],["pink","バースデー"],["gray","その他"]].map(([c,l]) => `<span><span class="dot" style="--cat:var(--c-${c})"></span>${l}</span>`).join("")}<span><span class="dot" style="--cat:var(--bad)"></span>赤枠＝社用車の重複予約</span></div>`;
   // 個人（自分だけ・特定の人）を選んだ週表示は、日付ごとに縦に並べて先までスクロールできる一覧にする
   if(mode === "week" && S.filter !== "all"){
     return head + `<div class="d-sched">${toolbar}</div><div class="m-sched">${mobileToolbar("前へ","次へ")}</div>` + personalList();
