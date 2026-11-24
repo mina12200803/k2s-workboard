@@ -729,21 +729,22 @@ body{background:radial-gradient(900px 520px at 105% -10%,#FFE6F1 0%,transparent 
 .fm-span button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent-strong)}
 .m-sched .toolbar .fm-span button{padding:6px 10px}
 .fm-wrap{-webkit-text-size-adjust:100%;text-size-adjust:100%;margin:0 -12px;background:#fff;overflow:hidden;border-radius:10px;box-shadow:0 1px 2px rgba(80,60,140,.06)}
-.fm-grid{display:grid;grid-template-columns:26px repeat(var(--m),minmax(0,1fr));grid-template-rows:22px repeat(var(--n),var(--rh))}
+.fm-grid{display:grid}
 .fm-grid>*{min-width:0;min-height:0;margin:0;padding:0;border:0;border-left:1px solid #F0EBF7;border-bottom:1px solid #F0EBF7;border-radius:0;background:#fff;overflow:hidden;font:inherit;color:var(--ink)}
-.fm-h{display:grid;place-items:center;font-size:9px!important;font-weight:700!important;white-space:nowrap;letter-spacing:-.02em}
+.fm-h{display:flex;align-items:flex-end;justify-content:center;padding-bottom:2px!important;font-size:10.5px!important;font-weight:700!important;white-space:nowrap;letter-spacing:-.04em;text-align:center}
+.fm-h.slim{font-size:8px!important;line-height:9px!important;font-weight:600!important;color:var(--ink-2)}
 .fm-h.me{color:var(--accent-strong);background:#F6F2FF}
 .fm-d{display:flex;align-items:center;justify-content:center;gap:1px;font-size:10px!important;font-weight:700!important;position:relative}
-.fm-d small{font-size:7px;font-weight:600}
+.fm-d small{font-size:8px;font-weight:600}
 .fm-d i{position:absolute;right:1px;top:1px;width:4px;height:4px;border-radius:50%;background:#13A388}
 .fm-d.sat{color:#3F78DE}.fm-d.red{color:#D63F7B}
 .fm-grid>.sat,.fm-grid>.red{background:#F9F6FD}
 .fm-grid>.today{background:#FFE9F3}
 .fm-c{display:flex;flex-direction:column;gap:1px;padding:1px!important;text-align:left;cursor:pointer}
-.fm-e{flex:1 1 0;min-height:0;display:flex;flex-direction:column;justify-content:center;position:relative;border-radius:2px;background:color-mix(in srgb,var(--cat,#9A93AF) 26%,#fff);padding:0 1px;font-size:7px;line-height:1.15;letter-spacing:-.03em;overflow:hidden}
-.fm-e b{font-weight:700;margin-right:1px;white-space:nowrap}
+.fm-e{flex:1 1 0;min-height:0;display:flex;flex-direction:column;justify-content:center;position:relative;border-radius:2px;background:color-mix(in srgb,var(--cat,#9A93AF) 26%,#fff);padding:0 1px;font-size:var(--fs);font-weight:700;line-height:1.05;letter-spacing:-.05em;overflow:hidden}
+.fm-e b{font-weight:700;white-space:nowrap}
 .fm-e>span{display:block;white-space:nowrap;overflow:hidden}
-.fm-e em{position:absolute;right:0;top:0;bottom:0;display:grid;place-items:center;padding:0 1px;font-style:normal;font-weight:700;background:#fff}
+.fm-e em{position:absolute;right:0;top:0;bottom:0;display:grid;place-items:center;padding:0 1px;font-style:normal;font-size:7.5px;font-weight:700;letter-spacing:0;background:#6553E0;color:#fff;border-radius:3px}
 .fm-e.busy{background:#EDEAF3;color:var(--ink-2)}
 .fm-more{flex:1 1 0;min-height:0;display:flex;align-items:center;font-size:7px;line-height:1.1;font-weight:700;color:var(--ink-2);padding-left:1px}
 @media (max-width:820px){
@@ -1477,36 +1478,47 @@ function fitMonth(){
   const ms = membersMeFirst(), names = shortNames(ms);
   const bar = document.querySelector(".tabbar");
   const bottom = bar && bar.getClientRects().length ? bar.getBoundingClientRect().top : innerHeight;
-  const avail = bottom - (w.getBoundingClientRect().top + scrollY) - 24;
-  const rh = Math.max(13, Math.floor(avail / n * 10) / 10);
-  // 背の低い画面で入りきらないときだけ、下のメニューに隠れないよう余白を付けてスクロールできるようにする
-  document.body.classList.toggle("fm-tall", rh * n > avail + 1);
-  const two = rh >= 17;
-  const short = t => t.endsWith(":00") ? String(Number(t.slice(0, 2))) : t.replace(/^0/, "");
-  let h = `<div class="fm-h"></div>` + names.map((s, i) => `<div class="fm-h ${ms[i].id === S.meId ? "me" : ""}">${esc(s.slice(0, 4))}</div>`).join("");
+  const room = bottom - (w.getBoundingClientRect().top + scrollY) - 3;
+  // 予定がない人の列は細く、だれも予定がない日は低くして、そのぶん予定のあるマスを大きくする
+  const list = [];
   for(let i = 1; i <= n; i++){
-    const d = new Date(y, mo, i), k = ymd(d);
-    const day = S.events.filter(e => onDay(e, k));
-    const co = day.filter(e => e.allCompany);
+    const d = new Date(y, mo, i), k = ymd(d), day = S.events.filter(e => onDay(e, k));
+    const cells = ms.map(m => day.filter(e => !e.allCompany && (e.memberIds||[]).includes(m.id)).sort(cmpEv));
+    list.push({i, d, k, co: day.filter(e => e.allCompany), cells, any: cells.some(c => c.length)});
+  }
+  const busyCol = ms.map((m, p) => list.some(r => r.cells[p].length));
+  const anyCol = busyCol.some(Boolean), slim = p => anyCol && !busyCol[p];
+  const headH = names.some((s, p) => slim(p)) ? Math.max(22, Math.max(...names.map((s, p) => slim(p) ? Math.min(3, s.length) : 0)) * 9 + 3) : 22;
+  const avail = room - headH;
+  const full = list.filter(r => r.any).length || n, low = full === n ? 0 : n - full;
+  const even = avail / n, rl = Math.max(11, Math.min(13, even));
+  const rh = Math.max(13, Math.floor((avail - low * rl) / full * 10) / 10);
+  const rowH = r => low && !r.any ? rl : low ? rh : Math.max(13, even);
+  const total = list.reduce((s, r) => s + rowH(r), 0);
+  // 背の低い画面で入りきらないときだけ、下のメニューに隠れないよう余白を付けてスクロールできるようにする
+  document.body.classList.toggle("fm-tall", total > avail + 1);
+  const two = rh >= 18, fs = !two ? 9 : Math.min(9.5, Math.max(7.5, (rh - 4) / 2));
+  let h = `<div class="fm-h"></div>` + names.map((s, p) => `<div class="fm-h ${ms[p].id === S.meId ? "me" : ""} ${slim(p) ? "slim" : ""}">${slim(p) ? [...s].slice(0, 3).map(esc).join("<br>") : esc(s.slice(0, 4))}</div>`).join("");
+  for(const r of list){
+    const {i, d, k, co} = r;
     const red = d.getDay() === 0 || HOLIDAYS[k] || co.some(e => e.category === "本社休み");
     const cls = (k === todayStr() ? "today " : "") + (red ? "red" : d.getDay() === 6 ? "sat" : "");
     h += `<button class="fm-d num ${cls}" data-fm="|${k}" aria-label="${md(k)} 全員の予定">${i}<small>${WD[d.getDay()]}</small>${co.length ? "<i></i>" : ""}</button>`;
-    for(const m of ms){
-      const evs = day.filter(e => !e.allCompany && (e.memberIds||[]).includes(m.id)).sort(cmpEv);
-      const ttl = e => e.busy ? "予定" : esc(e.title.slice(0, 6));
-      const tm = e => e.allDay || !e.start ? "" : short(e.start);
+    ms.forEach((m, p) => {
+      const evs = r.cells[p];
+      const ttl = e => e.busy ? "予定あり" : esc(e.title.trim().slice(0, 8));
       const box = (e, inner) => `<span class="fm-e ${e.busy ? "busy" : ""}" style="${e.busy ? "" : catVar(e.category)}">${inner}</span>`;
       let b = "";
-      if(evs.length === 1 && two){ const e = evs[0]; b = box(e, `<b class="num">${e.allDay || !e.start ? "終日" : esc(e.start)}</b><span>${ttl(e)}</span>`); }
+      if(evs.length === 1 && two){ const e = evs[0]; b = box(e, `<b class="num">${e.allDay || !e.start ? "終日" : esc(e.start.replace(/^0/, ""))}</b><span>${ttl(e)}</span>`); }
       else if(evs.length){
-        const lim = two ? 2 : 1, show = evs.length > lim ? (two ? 1 : 1) : evs.length;
-        b = evs.slice(0, show).map((e, j) => box(e, `<span>${tm(e) ? `<b class="num">${tm(e)}</b>` : ""}${ttl(e)}</span>${!two && evs.length > 1 ? `<em>+${evs.length - 1}</em>` : ""}`)).join("");
-        if(two && evs.length > show) b += `<span class="fm-more num">ほか${evs.length - show}</span>`;
+        const show = Math.min(two ? 2 : 1, evs.length), rest = evs.length - show;
+        b = evs.slice(0, show).map((e, j) => box(e, `<span>${ttl(e)}</span>${rest && j === show - 1 ? `<em class="num">+${rest}</em>` : ""}`)).join("");
       }
       h += `<button class="fm-c ${cls}" data-fm="${esc(m.id)}|${k}" aria-label="${esc(m.name)} ${md(k)} ${evs.length ? evs.length + "件" : "予定なし"}">${b}</button>`;
-    }
+    });
   }
-  w.innerHTML = `<div class="fm-grid" style="--m:${ms.length};--n:${n};--rh:${rh}px">${h}</div>`;
+  const cols = ms.map((m, p) => slim(p) ? "16px" : "minmax(0,1fr)").join(" ");
+  w.innerHTML = `<div class="fm-grid" style="--fs:${fs.toFixed(1)}px;grid-template-columns:26px ${cols};grid-template-rows:${headH}px ${list.map(r => rowH(r).toFixed(1) + "px").join(" ")}">${h}</div>`;
 }
 // 1か月表のマスを押したとき：その日の予定を読める大きさで出す
 function openDaySheet(id, k){
