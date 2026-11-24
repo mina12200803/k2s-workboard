@@ -1462,11 +1462,11 @@ function mobileMonth(){
     <div class="fm-wrap" id="fmWrap"></div>
   </div>`;
 }
-// 名前の列見出し：ふだんは名字。同じ名字の人がいるときは名前のほう
+// 名前の列見出し：ふだんは名字。同じ名字の人がいるときは、並び順で一番上の人だけ名字、ほかの人は名前のほう
 function shortNames(ms){
   const part = m => m.name.trim().split(/[\s　]+/);
-  const cnt = {}; ms.forEach(m => { const f = part(m)[0]; cnt[f] = (cnt[f] || 0) + 1; });
-  return ms.map(m => { const p = part(m); return p.length > 1 && cnt[p[0]] > 1 ? p[1] : p[0]; });
+  const first = {}; sortedMembers().forEach(m => { const f = part(m)[0]; if(!(f in first)) first[f] = m.id; });
+  return ms.map(m => { const p = part(m); return p.length > 1 && first[p[0]] !== m.id ? p[1] : p[0]; });
 }
 function fitMonth(){
   const w = document.getElementById("fmWrap");

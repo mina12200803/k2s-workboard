@@ -1,6 +1,6 @@
 // K2S ワークボード — オフライン対応（画面ファイルを端末に保存）
 // アプリを更新したら VERSION の数字を上げてください。
-const VERSION = "k2s-v6";
+const VERSION = "k2s-v7";
 const SHELL = ["./", "index.html", "firebase-config.js", "manifest.webmanifest",
   "favicon-64.png", "icon-180.png", "icon-192.png", "icon-512.png"];
 
