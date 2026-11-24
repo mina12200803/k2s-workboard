@@ -715,6 +715,42 @@ body{background:radial-gradient(900px 520px at 105% -10%,#FFE6F1 0%,transparent 
 .mt-ev.busy{border:1px dashed var(--line-2);background:repeating-linear-gradient(135deg,#F7F4FC 0 6px,#fff 6px 12px)}
 .mt-ev.clash{border-color:#F28BA8}
 .m-sched .toolbar .lay-tg button{padding:6px 10px}
+/* スマホの表（全員・1か月を1画面に） */
+.fm-bar{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.fm-bar .grow{flex:1}
+.fm-bar b{font-size:15px;font-weight:700;white-space:nowrap}
+.fm-bar .icon-btn{width:34px;height:34px;border:0;background:rgba(255,255,255,.85)}
+.fm-bar .fm-add{background:var(--grad-main);color:#fff}
+.fm-bar .btn.sm{height:34px;padding:0 10px;border:0;background:rgba(255,255,255,.85)}
+.fm-bar .sel{width:auto;max-width:96px;min-width:0;height:34px;padding:0 6px;font-size:12px;border:0;background:rgba(255,255,255,.85)}
+.fm-bar .lay-tg button,.fm-span button{padding:5px 9px;font-size:12px}
+.fm-span{display:inline-flex;gap:2px;padding:3px;border-radius:999px;background:rgba(255,255,255,.85)}
+.fm-span button{border:0;background:transparent;border-radius:999px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.fm-span button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent-strong)}
+.m-sched .toolbar .fm-span button{padding:6px 10px}
+.fm-wrap{-webkit-text-size-adjust:100%;text-size-adjust:100%;margin:0 -12px;background:#fff;overflow:hidden;border-radius:10px;box-shadow:0 1px 2px rgba(80,60,140,.06)}
+.fm-grid{display:grid;grid-template-columns:26px repeat(var(--m),minmax(0,1fr));grid-template-rows:22px repeat(var(--n),var(--rh))}
+.fm-grid>*{min-width:0;min-height:0;margin:0;padding:0;border:0;border-left:1px solid #F0EBF7;border-bottom:1px solid #F0EBF7;border-radius:0;background:#fff;overflow:hidden;font:inherit;color:var(--ink)}
+.fm-h{display:grid;place-items:center;font-size:9px!important;font-weight:700!important;white-space:nowrap;letter-spacing:-.02em}
+.fm-h.me{color:var(--accent-strong);background:#F6F2FF}
+.fm-d{display:flex;align-items:center;justify-content:center;gap:1px;font-size:10px!important;font-weight:700!important;position:relative}
+.fm-d small{font-size:7px;font-weight:600}
+.fm-d i{position:absolute;right:1px;top:1px;width:4px;height:4px;border-radius:50%;background:#13A388}
+.fm-d.sat{color:#3F78DE}.fm-d.red{color:#D63F7B}
+.fm-grid>.sat,.fm-grid>.red{background:#F9F6FD}
+.fm-grid>.today{background:#FFE9F3}
+.fm-c{display:flex;flex-direction:column;gap:1px;padding:1px!important;text-align:left;cursor:pointer}
+.fm-e{flex:1 1 0;min-height:0;display:flex;flex-direction:column;justify-content:center;position:relative;border-radius:2px;background:color-mix(in srgb,var(--cat,#9A93AF) 26%,#fff);padding:0 1px;font-size:7px;line-height:1.15;letter-spacing:-.03em;overflow:hidden}
+.fm-e b{font-weight:700;margin-right:1px;white-space:nowrap}
+.fm-e>span{display:block;white-space:nowrap;overflow:hidden}
+.fm-e em{position:absolute;right:0;top:0;bottom:0;display:grid;place-items:center;padding:0 1px;font-style:normal;font-weight:700;background:#fff}
+.fm-e.busy{background:#EDEAF3;color:var(--ink-2)}
+.fm-more{flex:1 1 0;min-height:0;display:flex;align-items:center;font-size:7px;line-height:1.1;font-weight:700;color:var(--ink-2);padding-left:1px}
+@media (max-width:820px){
+  body.fm-on .page-head,body.fm-on .fab{display:none}
+  body.fm-on .main{padding-top:8px;padding-bottom:0}
+  body.fm-on.fm-tall .main{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+}
 /* PCの表（全員・1か月） */
 .cal-wrap.mtab-wrap{position:relative;overflow-x:auto;padding-left:0;padding-right:0}
 .week.mtab{grid-template-columns:172px repeat(var(--n),118px);width:max-content;min-width:0}
@@ -903,7 +939,7 @@ const S = {
   route:{managerId:"",presidentId:"",accountingId:""},
   meId:null, viewerId:null, loadedCols:new Set(), slow:false,
   view: (ls.get("k2s-view") || "home"),
-  anchor: new Date(), schedMode: (ls.get("k2s-smode") || "week"), layout: (ls.get("k2s-layout") || "person"), filter: (ls.get("k2s-filter") || "all"),
+  anchor: new Date(), schedMode: (ls.get("k2s-smode") || "week"), layout: (ls.get("k2s-layout") || "person"), mSpan: (ls.get("k2s-mspan") || "month"), filter: (ls.get("k2s-filter") || "all"),
   mDay: todayStr(), tripTab: "inbox", modal:null
 };
 let DB = null, USER = null, LOCAL = null;
@@ -1266,6 +1302,7 @@ function draw(){
   if(S.modal && S.modal.type === "trip-detail") refreshTripDetail();
   // スマホの表：今日の列が見えるように横スクロール
   // （同じ週を描き直したときは、見ていた位置をそのまま保つ）
+  fitMonth();
   for(const [sel, thSel, off] of [[".mt-wrap", ".mt-h.is-today", 62], [".mtab-wrap", ".h.is-today", 290]]){
     const w = document.querySelector(sel); if(!w) continue; w.dataset.week = mtKey; const th = w.querySelector(thSel);
     if(keepScroll[sel] !== undefined) w.scrollLeft = keepScroll[sel]; else if(th) w.scrollLeft = Math.max(0, th.offsetLeft - off);
@@ -1341,7 +1378,7 @@ function viewSchedule(){
   // 表（全員）：PCは「月」なら1か月ぶん・「週」なら1週間の メンバー×日付。スマホは1週間
   if(isTable && S.filter === "all"){
     const pc = mode === "month" ? monthTable() : `<div class="cal-wrap">${weekGrid(days, false, true)}</div>`;
-    return head + `<div class="d-sched">${toolbar}${pc}${legend}</div>` + mobileTable(days);
+    return head + `<div class="d-sched">${toolbar}${pc}${legend}</div>` + (S.mSpan === "week" ? mobileTable(days) : mobileMonth());
   }
   // 表（自分だけ・特定の人）：PCは「月」なら1か月カレンダー・「週」なら1週間。スマホは1か月カレンダー
   if(isTable){
@@ -1403,7 +1440,94 @@ function layoutToggle(){
 }
 // メンバー（自分が一番上）
 function membersMeFirst(){ const ms = sortedMembers(); const me = ms.find(m => m.id === S.meId); return me ? [me, ...ms.filter(m => m.id !== S.meId)] : ms; }
-// スマホの表：名前は左に固定、曜日は横にスワイプ
+// スマホの表（全員）：「1か月｜1週間」の切り替え
+function spanToggle(){
+  return `<div class="fm-span" role="group" aria-label="表示する期間"><button data-mspan="month" aria-pressed="${S.mSpan!=="week"}">1か月</button><button data-mspan="week" aria-pressed="${S.mSpan==="week"}">1週間</button></div>`;
+}
+// スマホの表（全員・1か月）：縦に日付・横に名前。スクロールなしで1画面に収める（中身は画面の高さを測ってから fitMonth が描く）
+function mobileMonth(){
+  const opts = [["all","全員"],["me","自分だけ"], ...sortedMembers().map(m => [m.id, m.name])];
+  return `<div class="m-sched fm">
+    <div class="fm-bar">
+      <button class="icon-btn" data-shift="-1" aria-label="前の月">${ic("left")}</button>
+      <button class="btn sm" data-shift="0">今日</button>
+      <button class="icon-btn" data-shift="1" aria-label="次の月">${ic("right")}</button>
+      ${spanToggle()}
+      <span class="grow"></span>
+      <button class="icon-btn fm-add" data-act="new-event" aria-label="予定を登録">${ic("plus")}</button>
+    </div>
+    <div class="fm-bar"><b class="num">${S.anchor.getFullYear()}年${S.anchor.getMonth()+1}月</b><span class="grow"></span>${layoutToggle()}
+      <select class="sel" id="filterSelM" aria-label="表示するメンバー">${opts.map(([v,l]) => `<option value="${esc(v)}" ${S.filter===v?"selected":""}>${esc(l)}</option>`).join("")}</select>
+    </div>
+    <div class="fm-wrap" id="fmWrap"></div>
+  </div>`;
+}
+// 名前の列見出し：ふだんは名字。同じ名字の人がいるときは名前のほう
+function shortNames(ms){
+  const part = m => m.name.trim().split(/[\s　]+/);
+  const cnt = {}; ms.forEach(m => { const f = part(m)[0]; cnt[f] = (cnt[f] || 0) + 1; });
+  return ms.map(m => { const p = part(m); return p.length > 1 && cnt[p[0]] > 1 ? p[1] : p[0]; });
+}
+function fitMonth(){
+  const w = document.getElementById("fmWrap");
+  const on = !!w && w.getClientRects().length > 0;
+  document.body.classList.toggle("fm-on", on);
+  if(!on) return;
+  const y = S.anchor.getFullYear(), mo = S.anchor.getMonth(), n = new Date(y, mo + 1, 0).getDate();
+  const ms = membersMeFirst(), names = shortNames(ms);
+  const bar = document.querySelector(".tabbar");
+  const bottom = bar && bar.getClientRects().length ? bar.getBoundingClientRect().top : innerHeight;
+  const avail = bottom - (w.getBoundingClientRect().top + scrollY) - 24;
+  const rh = Math.max(13, Math.floor(avail / n * 10) / 10);
+  // 背の低い画面で入りきらないときだけ、下のメニューに隠れないよう余白を付けてスクロールできるようにする
+  document.body.classList.toggle("fm-tall", rh * n > avail + 1);
+  const two = rh >= 17;
+  const short = t => t.endsWith(":00") ? String(Number(t.slice(0, 2))) : t.replace(/^0/, "");
+  let h = `<div class="fm-h"></div>` + names.map((s, i) => `<div class="fm-h ${ms[i].id === S.meId ? "me" : ""}">${esc(s.slice(0, 4))}</div>`).join("");
+  for(let i = 1; i <= n; i++){
+    const d = new Date(y, mo, i), k = ymd(d);
+    const day = S.events.filter(e => onDay(e, k));
+    const co = day.filter(e => e.allCompany);
+    const red = d.getDay() === 0 || HOLIDAYS[k] || co.some(e => e.category === "本社休み");
+    const cls = (k === todayStr() ? "today " : "") + (red ? "red" : d.getDay() === 6 ? "sat" : "");
+    h += `<button class="fm-d num ${cls}" data-fm="|${k}" aria-label="${md(k)} 全員の予定">${i}<small>${WD[d.getDay()]}</small>${co.length ? "<i></i>" : ""}</button>`;
+    for(const m of ms){
+      const evs = day.filter(e => !e.allCompany && (e.memberIds||[]).includes(m.id)).sort(cmpEv);
+      const ttl = e => e.busy ? "予定" : esc(e.title.slice(0, 6));
+      const tm = e => e.allDay || !e.start ? "" : short(e.start);
+      const box = (e, inner) => `<span class="fm-e ${e.busy ? "busy" : ""}" style="${e.busy ? "" : catVar(e.category)}">${inner}</span>`;
+      let b = "";
+      if(evs.length === 1 && two){ const e = evs[0]; b = box(e, `<b class="num">${e.allDay || !e.start ? "終日" : esc(e.start)}</b><span>${ttl(e)}</span>`); }
+      else if(evs.length){
+        const lim = two ? 2 : 1, show = evs.length > lim ? (two ? 1 : 1) : evs.length;
+        b = evs.slice(0, show).map((e, j) => box(e, `<span>${tm(e) ? `<b class="num">${tm(e)}</b>` : ""}${ttl(e)}</span>${!two && evs.length > 1 ? `<em>+${evs.length - 1}</em>` : ""}`)).join("");
+        if(two && evs.length > show) b += `<span class="fm-more num">ほか${evs.length - show}</span>`;
+      }
+      h += `<button class="fm-c ${cls}" data-fm="${esc(m.id)}|${k}" aria-label="${esc(m.name)} ${md(k)} ${evs.length ? evs.length + "件" : "予定なし"}">${b}</button>`;
+    }
+  }
+  w.innerHTML = `<div class="fm-grid" style="--m:${ms.length};--n:${n};--rh:${rh}px">${h}</div>`;
+}
+// 1か月表のマスを押したとき：その日の予定を読める大きさで出す
+function openDaySheet(id, k){
+  const day = S.events.filter(e => onDay(e, k) && (e.allCompany || !id || (e.memberIds||[]).includes(id))).sort(cmpEv);
+  const row = e => {
+    const multi = e.endDate && e.endDate !== e.date;
+    const time = e.allDay || !e.start ? "終日" : `${esc(e.start)}${e.end ? " - " + esc(e.end) : ""}`;
+    if(e.busy) return `<button class="pl-card busy" data-ev="${esc(e.id)}"><span class="pl-time num">${time}</span><span class="pl-lock">${ic("lock")}</span><span class="pl-title"><span class="pl-badge">非公開</span>予定あり</span></button>`;
+    const facs = (e.facilityIds||[]).map(f => (fac(f)||{}).name).filter(Boolean);
+    return `<button class="pl-card" style="${catVar(e.category)}" data-ev="${esc(e.id)}"><span class="pl-time num">${time}${multi ? `<small>${mdShort(e.date)}〜${mdShort(e.endDate)}</small>` : ""}</span><span class="pl-title"><span class="pl-badge">${esc(e.category || "その他")}</span><span class="pl-text">${esc(e.title)}</span></span>${facs.length ? `<span class="pl-sub">${esc(facs.join("、"))}</span>` : ""}</button>`;
+  };
+  const body = !day.length ? `<div class="empty">予定はありません</div>` : id ? day.map(row).join("") : mobileGrouped(day);
+  openModal(`<div class="modal" role="dialog" aria-modal="true" aria-labelledby="dsT">
+    <header><h2 id="dsT">${md(k)}${HOLIDAYS[k] ? `　<span style="color:#E2558A;font-size:13px">${esc(HOLIDAYS[k])}</span>` : ""}　${id ? esc(memName(id)) : "全員"}</h2><button class="icon-btn" data-close aria-label="閉じる">${ic("x")}</button></header>
+    <div class="mbody" style="gap:0">${body}</div>
+    <footer><span class="spacer"></span><button class="btn primary" data-add="${esc(id || S.meId || "")}|${k}">${ic("plus")}この日に予定を登録</button></footer>
+  </div>`, "day-sheet", {id, k});
+}
+let fitTimer;
+window.addEventListener("resize", () => { clearTimeout(fitTimer); fitTimer = setTimeout(fitMonth, 120); });
+// スマホの表（1週間）：名前は左に固定、曜日は横にスワイプ
 // PCの表（全員・1か月）：名前の列は左に固定して横にスクロール
 function monthTable(){
   const y = S.anchor.getFullYear(), mo = S.anchor.getMonth();
@@ -1469,6 +1593,7 @@ function mobileToolbar(prevLabel = "前の週", nextLabel = "次の週"){
       <button class="icon-btn" data-shift="-1" aria-label="${prevLabel}">${ic("left")}</button>
       <button class="btn sm" data-shift="0">今日</button>
       <button class="icon-btn" data-shift="1" aria-label="${nextLabel}">${ic("right")}</button>
+      ${S.schedMode !== "facility" && S.layout === "table" && S.filter === "all" ? spanToggle() : ""}
       <span class="grow"></span>
       ${S.schedMode !== "facility" ? layoutToggle() : ""}
       ${`<select class="sel" id="filterSelM" style="width:auto;max-width:150px" aria-label="表示するメンバー">${opts.map(([v,l]) => `<option value="${esc(v)}" ${S.filter===v?"selected":""}>${esc(l)}</option>`).join("")}</select>`}
@@ -1958,7 +2083,7 @@ async function tripAct(kind){
 
 /* ============ イベント処理 ============ */
 document.addEventListener("click", async e => {
-  const el = e.target.closest("[data-nav],[data-act],[data-ev],[data-trip],[data-add],[data-smode],[data-layout],[data-shift],[data-ttab],[data-mday],[data-pickme],[data-close],[data-tp],[data-mdel]");
+  const el = e.target.closest("[data-nav],[data-act],[data-ev],[data-trip],[data-add],[data-smode],[data-layout],[data-mspan],[data-fm],[data-shift],[data-ttab],[data-mday],[data-pickme],[data-close],[data-tp],[data-mdel]");
   if(!el){ if(e.target.matches("[data-scrim]") && S.modal && S.modal.type !== "who") closeModal(); return; }
   if(el.dataset.close !== undefined){ closeModal(); return; }
   if(el.dataset.nav){ S.view = el.dataset.nav; ls.set("k2s-view", S.view); if(el.dataset.tab) S.tripTab = el.dataset.tab; render(); window.scrollTo(0,0); return; }
@@ -1977,6 +2102,8 @@ document.addEventListener("click", async e => {
     else openEvent(null, {date, memberId: who || S.meId});
     return;
   }
+  if(el.dataset.fm !== undefined){ const [id, k] = el.dataset.fm.split("|"); openDaySheet(id, k); return; }
+  if(el.dataset.mspan){ S.mSpan = el.dataset.mspan; ls.set("k2s-mspan", S.mSpan); render(); return; }
   if(el.dataset.layout){
     S.layout = el.dataset.layout; ls.set("k2s-layout", S.layout);
     // PCは画面が広いので、表は1か月・人ごとは1週間で開く
@@ -1990,7 +2117,7 @@ document.addEventListener("click", async e => {
     S.listDays = 42;
     const pcView = getComputedStyle($(".d-sched") || document.body).display !== "none";
     if(n === 0){ S.anchor = new Date(); S.mDay = todayStr(); S.scrollToday = true; }
-    else if(!pcView && S.layout === "table" && S.filter !== "all" && S.schedMode !== "facility"){ S.anchor = new Date(S.anchor.getFullYear(), S.anchor.getMonth() + n, 1); }
+    else if(!pcView && S.layout === "table" && (S.filter !== "all" || S.mSpan !== "week") && S.schedMode !== "facility"){ S.anchor = new Date(S.anchor.getFullYear(), S.anchor.getMonth() + n, 1); }
     else if(pcView && S.layout === "table" && S.schedMode === "month"){ S.anchor = new Date(S.anchor.getFullYear(), S.anchor.getMonth() + n, 1); }
     else if(S.schedMode === "week" && S.filter !== "all"){ S.anchor = addDays(mondayOf(S.anchor), 7*n); render(); window.scrollTo(0, 0); return; }
     else if(S.schedMode === "month" && getComputedStyle($(".d-sched") || document.body).display !== "none") S.anchor = new Date(S.anchor.getFullYear(), S.anchor.getMonth() + n, 1);
