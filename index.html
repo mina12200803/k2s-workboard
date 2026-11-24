@@ -754,6 +754,11 @@ body{background:radial-gradient(900px 520px at 105% -10%,#FFE6F1 0%,transparent 
   body.fm-on .main{padding-bottom:0}
   body.fm-on.fm-tall .main{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 }
+/* 月カレンダー・社用車：丸の代わりに種類の文字ラベル */
+.chip:not(.rng)::before{display:none}
+.chip .lb{display:inline-block;background:color-mix(in srgb,var(--cat) 74%,#2B2541);color:#fff;font-size:11px;font-weight:600;line-height:1.5;border-radius:5px;padding:0 6px;margin-right:5px;white-space:nowrap}
+.band .chip .lb{background:none;color:inherit;font-size:inherit;padding:0;margin:0}
+.pm-wrap .chip .lb{font-size:9px;padding:0 2px;margin-right:2px;border-radius:3px}
 /* PCの表（全員・1か月） */
 .cal-wrap.mtab-wrap{position:relative;overflow-x:auto;padding-left:0;padding-right:0}
 .week.mtab{grid-template-columns:172px repeat(var(--n),118px);width:max-content;min-width:0}
@@ -1420,7 +1425,15 @@ function chip(e, clash, k, rng){
   if(multi) extra.push(`${mdShort(e.date)}〜${mdShort(e.endDate)}`);
   if((e.facilityIds||[]).length) extra.push(e.facilityIds.map(f => (fac(f)||{}).name || "").join("、"));
   if(e.busy) return `<button class="chip busy" data-ev="${esc(e.id)}" title="非公開の予定"><span class="lk">${ic("lock")}</span>${e.allDay || !e.start ? "" : `<span class="t">${esc(e.start)}${e.end ? "–" + esc(e.end) : ""}</span>`}予定あり</button>`;
-  return `<button class="chip ${e.tripId?"trip":""} ${clash.has(e.id)?"clash":""}" style="${catVar(e.category)}" data-ev="${esc(e.id)}" title="${esc(timeLabel(e) + " " + e.title)}">${t}${esc(e.title)}${extra.length?`<span class="x">${esc(extra.join("・"))}</span>`:""}</button>`;
+  return `<button class="chip ${e.tripId?"trip":""} ${clash.has(e.id)?"clash":""}" style="${catVar(e.category)}" data-ev="${esc(e.id)}" title="${esc(timeLabel(e) + " " + e.title)}">${t}${labeled(e)}${extra.length?`<span class="x">${esc(extra.join("・"))}</span>`:""}</button>`;
+}
+// 種類の文字ラベル＋予定名。「その他」はラベルなし。予定名が種類と同じ言葉で始まるときは二重に出さない
+function labeled(e){
+  const cat = e.category || "その他", title = e.title || "";
+  if(cat === "その他") return esc(title);
+  const rest = title.startsWith(cat) ? title.slice(cat.length) : null;
+  const dup = rest !== null && (rest === "" || /^[\s　（(]/.test(rest));
+  return `<span class="lb">${esc(cat)}</span>${esc(dup ? rest.trim() : title)}`;
 }
 function extraOf(e, multi){
   const extra = [];
