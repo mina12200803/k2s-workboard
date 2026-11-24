@@ -754,6 +754,12 @@ body{background:radial-gradient(900px 520px at 105% -10%,#FFE6F1 0%,transparent 
   body.fm-on .main{padding-bottom:0}
   body.fm-on.fm-tall .main{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 }
+/* PC：人ごと × 1か月の名前ボタン */
+.pm-strip{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.pm-strip button{display:inline-flex;align-items:center;gap:7px;border:1px solid #EFEAF7;background:rgba(255,255,255,.9);border-radius:999px;padding:4px 14px 4px 5px;font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer}
+.pm-strip button:hover{background:#fff;border-color:#DCD0F7}
+.pm-strip button[aria-pressed="true"]{background:var(--accent-soft);border-color:#B9A9FA;color:var(--accent-strong);box-shadow:0 6px 14px -8px rgba(124,107,242,.6)}
+.pm-strip .av.sm{width:26px;height:26px;font-size:11px}
 /* 月カレンダー・社用車：丸の代わりに種類の文字ラベル */
 .chip:not(.rng)::before{display:none}
 .chip .lb{display:inline-block;background:color-mix(in srgb,var(--cat) 74%,#2B2541);color:#fff;font-size:11px;font-weight:600;line-height:1.5;border-radius:5px;padding:0 6px;margin-right:5px;white-space:nowrap}
@@ -949,7 +955,7 @@ const S = {
   route:{managerId:"",presidentId:"",accountingId:""},
   meId:null, viewerId:null, loadedCols:new Set(), slow:false,
   view: (ls.get("k2s-view") || "home"),
-  anchor: new Date(), schedMode: (ls.get("k2s-smode") || "week"), layout: (ls.get("k2s-layout") || "person"), mSpan: (ls.get("k2s-mspan") || "month"), filter: (ls.get("k2s-filter") || "all"),
+  anchor: new Date(), schedMode: (ls.get("k2s-smode") || "week"), layout: (ls.get("k2s-layout") || "person"), mSpan: (ls.get("k2s-mspan") || "month"), pmWho: (ls.get("k2s-pmwho") || "me"), filter: (ls.get("k2s-filter") || "all"),
   mDay: todayStr(), tripTab: "inbox", modal:null
 };
 let DB = null, USER = null, LOCAL = null;
@@ -1365,6 +1371,7 @@ function viewSchedule(){
   else range = `${days[0].getFullYear()}年 ${days[0].getMonth()+1}月${days[0].getDate()}日 〜 ${days[6].getMonth()+1}月${days[6].getDate()}日`;
   const opts = [["all","全員"],["me","自分だけ"], ...sortedMembers().map(m => [m.id, m.name])];
   const isTable = mode !== "facility" && S.layout === "table";
+  const personMonth = mode === "month" && !isTable;  // PC：人ごと × 1か月
   const toolbar = `
   <div class="toolbar">
     ${mode !== "facility" ? layoutToggle() : ""}
@@ -1378,11 +1385,17 @@ function viewSchedule(){
     <button class="icon-btn" data-shift="1" aria-label="次へ">${ic("right")}</button>
     <span class="range num">${range}</span>
     <span class="grow"></span>
-    ${mode !== "facility" ? `<label class="sr" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2)">表示 <select class="sel" id="filterSel" style="width:auto">${opts.map(([v,l]) => `<option value="${esc(v)}" ${S.filter===v?"selected":""}>${esc(l)}</option>`).join("")}</select></label>` : ""}
+    ${mode !== "facility" && !personMonth ? `<label class="sr" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2)">表示 <select class="sel" id="filterSel" style="width:auto">${opts.map(([v,l]) => `<option value="${esc(v)}" ${S.filter===v?"selected":""}>${esc(l)}</option>`).join("")}</select></label>` : ""}
   </div>`;
   const head = `<div class="page-head sched-head"><div><h1>スケジュール</h1><div class="sub">空いているマスをクリックすると、その人・その日で予定を登録できます</div></div><div class="actions"><button class="btn primary" data-act="new-event">${ic("plus")}予定を登録</button></div></div>`;
   let grid;
-  if(mode === "month") grid = monthGrid();
+  let strip = "";
+  if(personMonth){
+    const sv = S.filter, who = pmWho();
+    S.filter = who; grid = monthGrid(who !== "all", who !== "all"); S.filter = sv;
+    strip = personStrip(who);
+  }
+  else if(mode === "month") grid = monthGrid();
   else grid = weekGrid(days, mode === "facility");
   const legend = `<div class="legend">${[["red","商談・打合・納品"],["orange","出張・会合・イベント"],["brown","会議"],["purple","リモート会議"],["green","発送・予約"],["blue","休み・定休日"],["rose","事務作業"],["sky","飲み会・懇親会"],["pink","バースデー"],["gray","その他"]].map(([c,l]) => `<span><span class="dot" style="--cat:var(--c-${c})"></span>${l}</span>`).join("")}<span><span class="dot" style="--cat:var(--bad)"></span>赤枠＝社用車の重複予約</span></div>`;
   // 個人（自分だけ・特定の人）を選んだ週表示は、日付ごとに縦に並べて先までスクロールできる一覧にする
@@ -1406,7 +1419,7 @@ function viewSchedule(){
   if(mode === "week"){
     return head + `<div class="d-sched">${toolbar}</div>` + mobileSched(days).replace('class="m-sched"', 'class="m-sched always"');
   }
-  return head + `<div class="d-sched">${toolbar}<div class="cal-wrap">${grid}</div>${legend}</div>` + mobileSched(days);
+  return head + `<div class="d-sched">${toolbar}${strip}<div class="cal-wrap">${grid}</div>${legend}</div>` + mobileSched(days);
 }
 function filteredMembers(){
   const ms = sortedMembers();
@@ -1414,13 +1427,23 @@ function filteredMembers(){
   if(S.filter === "me") return ms.filter(m => m.id === S.meId);
   return ms.filter(m => m.id === S.filter);
 }
-function chip(e, clash, k, rng){
+// PCの「人ごと × 1か月」で見ている人（上の名前ボタンで切り替え）
+function pmWho(){
+  const w = S.filter !== "all" ? S.filter : S.pmWho;
+  if(w === S.meId || w === "me") return mem(S.meId) ? "me" : "all";
+  return w === "all" || mem(w) ? w : "me";
+}
+function personStrip(who){
+  const btn = (v, icon, name) => `<button data-pmwho="${esc(v)}" aria-pressed="${who===v}">${icon}${esc(name)}</button>`;
+  return `<div class="pm-strip" role="group" aria-label="だれの予定を見るか">${btn("all", `<span class="av sm" style="background:var(--grad-main)" aria-hidden="true">全</span>`, "全員")}${membersMeFirst().map(m => btn(m.id === S.meId ? "me" : m.id, av(m.id, true), m.name + (m.id === S.meId ? "（あなた）" : ""))).join("")}</div>`;
+}
+function chip(e, clash, k, rng, lab){
   const multi = e.endDate && e.endDate !== e.date;
   // rng＝表表示：「13:00-14:30」のように終わりの時間まで1行目に出す
   const tm = rng ? (e.allDay || !e.start ? "終日" : esc(e.start) + (e.end ? `<span class="te">-${esc(e.end)}</span>` : "")) : (e.allDay || !e.start ? "" : esc(e.start));
   const t = (e.private ? `<span class="lk" title="自分だけの予定">${ic("lock")}</span>` : "") + (tm ? `<span class="t">${tm}</span>` : "");
   if(rng && e.busy) return `<button class="chip busy rng" data-ev="${esc(e.id)}" title="非公開の予定"><span class="t">${tm}</span><span class="lk">${ic("lock")}</span>予定あり</button>`;
-  if(rng) return `<button class="chip rng ${e.tripId?"trip":""} ${clash.has(e.id)?"clash":""}" style="${catVar(e.category)}" data-ev="${esc(e.id)}" title="${esc(timeLabel(e) + " " + e.title)}">${t}${esc(e.title)}${extraOf(e, multi)}</button>`;
+  if(rng) return `<button class="chip rng ${e.tripId?"trip":""} ${clash.has(e.id)?"clash":""}" style="${catVar(e.category)}" data-ev="${esc(e.id)}" title="${esc(timeLabel(e) + " " + e.title)}">${t}${lab ? labeled(e) : esc(e.title)}${extraOf(e, multi)}</button>`;
   const extra = [];
   if(multi) extra.push(`${mdShort(e.date)}〜${mdShort(e.endDate)}`);
   if((e.facilityIds||[]).length) extra.push(e.facilityIds.map(f => (fac(f)||{}).name || "").join("、"));
@@ -1583,9 +1606,9 @@ function weekGrid(days, byFacility, allMembers){
   }
   return `<div class="week">${head}${band}${rows}</div>`;
 }
-function monthGrid(rng){
+function monthGrid(rng, lab){
   const clash = clashSet();
-  const lim = rng ? 6 : 4;
+  const lim = lab ? 99 : rng ? 6 : 4;
   const first = new Date(S.anchor.getFullYear(), S.anchor.getMonth(), 1);
   const start = mondayOf(first);
   const ids = new Set(filteredMembers().map(m => m.id));
@@ -1595,7 +1618,7 @@ function monthGrid(rng){
     if(i === 35 && d.getMonth() !== first.getMonth()) break;
     const evs = S.events.filter(e => onDay(e,k) && (e.allCompany || (e.memberIds||[]).some(id => ids.has(id)))).sort(cmpEv);
     const out = d.getMonth() !== first.getMonth();
-    html += `<div class="mcell ${out?"out":""} ${dayClass(d).join(" ")}" data-add="${S.filter!=="all"&&S.filter!=="me"?S.filter:(S.meId||"")}|${k}"><div class="dn num">${d.getDate()}${HOLIDAYS[k]?`<small>${HOLIDAYS[k]}</small>`:""}</div>${evs.slice(0,lim).map(e => chip(e, clash, k, rng && !e.allCompany)).join("")}${evs.length>lim?`<span class="more">ほか${evs.length-lim}件</span>`:""}</div>`;
+    html += `<div class="mcell ${out?"out":""} ${dayClass(d).join(" ")}" data-add="${S.filter!=="all"&&S.filter!=="me"?S.filter:(S.meId||"")}|${k}"><div class="dn num">${d.getDate()}${HOLIDAYS[k]?`<small>${HOLIDAYS[k]}</small>`:""}</div>${evs.slice(0,lim).map(e => chip(e, clash, k, rng && !e.allCompany, lab)).join("")}${evs.length>lim?`<span class="more">ほか${evs.length-lim}件</span>`:""}</div>`;
   }
   return `<div class="month">${html}</div>`;
 }
@@ -2105,7 +2128,7 @@ async function tripAct(kind){
 
 /* ============ イベント処理 ============ */
 document.addEventListener("click", async e => {
-  const el = e.target.closest("[data-nav],[data-act],[data-ev],[data-trip],[data-add],[data-smode],[data-layout],[data-mtab],[data-fm],[data-shift],[data-ttab],[data-mday],[data-pickme],[data-close],[data-tp],[data-mdel]");
+  const el = e.target.closest("[data-nav],[data-act],[data-ev],[data-trip],[data-add],[data-smode],[data-layout],[data-mtab],[data-pmwho],[data-fm],[data-shift],[data-ttab],[data-mday],[data-pickme],[data-close],[data-tp],[data-mdel]");
   if(!el){ if(e.target.matches("[data-scrim]") && S.modal && S.modal.type !== "who") closeModal(); return; }
   if(el.dataset.close !== undefined){ closeModal(); return; }
   if(el.dataset.nav){ S.view = el.dataset.nav; ls.set("k2s-view", S.view); if(el.dataset.tab) S.tripTab = el.dataset.tab; render(); window.scrollTo(0,0); return; }
@@ -2125,6 +2148,11 @@ document.addEventListener("click", async e => {
     return;
   }
   if(el.dataset.fm !== undefined){ const [id, k] = el.dataset.fm.split("|"); openDaySheet(id, k); return; }
+  if(el.dataset.pmwho){
+    S.pmWho = el.dataset.pmwho; ls.set("k2s-pmwho", S.pmWho);
+    if(S.filter !== "all"){ S.filter = S.pmWho; ls.set("k2s-filter", S.filter); }
+    render(); return;
+  }
   if(el.dataset.mtab){
     const v = el.dataset.mtab;
     S.layout = v === "list" ? "person" : "table"; ls.set("k2s-layout", S.layout);
@@ -2134,9 +2162,9 @@ document.addEventListener("click", async e => {
   }
   if(el.dataset.layout){
     S.layout = el.dataset.layout; ls.set("k2s-layout", S.layout);
-    // PCは画面が広いので、表は1か月・人ごとは1週間で開く
+    // PCは画面が広いので、表は1か月で開く。1か月を見ているときに「人ごと」を押したら、1か月のまま人ごとにする
     const pc = getComputedStyle($(".d-sched") || document.body).display !== "none";
-    if(pc && S.schedMode !== "facility"){ S.schedMode = S.layout === "table" ? "month" : "week"; ls.set("k2s-smode", S.schedMode); }
+    if(pc && S.schedMode !== "facility"){ if(S.layout === "table") S.schedMode = "month"; ls.set("k2s-smode", S.schedMode); }
     render(); return;
   }
   if(el.dataset.smode){ S.schedMode = el.dataset.smode; ls.set("k2s-smode", S.schedMode); render(); return; }
